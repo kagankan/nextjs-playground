@@ -1,3 +1,4 @@
 env:
   - variable: OPENAI_API_KEY
-    secret: OPENAI_API_KEY
+    # デフォルトで参照されるプロジェクトIDと異なる？ため、明示的に指定
+    secret: projects/618573142914/secrets/OPENAI_API_KEY
