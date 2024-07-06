@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import { Visual } from "./Visual";
-import { getDataset } from "../api/actions";
+import { chatAction, getDataset } from "../api/actions";
+import { useFormState } from "react-dom";
 
 type Message = {
   id: string;
@@ -11,120 +12,58 @@ type Message = {
 };
 
 export const Message = () => {
+  const [state, dispatch] = useFormState(chatAction, { messages: [] });
+  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+    state,
+    (
+      state,
+      newMessage: {
+        type: "question" | "answer";
+        message: string;
+      }
+    ) => ({
+      ...state,
+      messages: [
+        ...state.messages,
+        ...(newMessage.type === "question"
+          ? [
+              {
+                id: crypto.randomUUID(),
+                type: "question",
+                content: newMessage.message,
+              } as const,
+              {
+                id: crypto.randomUUID(),
+                type: "a",
+                content: "（考え中）",
+              } as const,
+              {
+                id: crypto.randomUUID(),
+                type: "b",
+                content: "（考え中）",
+              } as const,
+            ]
+          : newMessage.type === "answer"
+          ? [
+              {
+                id: crypto.randomUUID(),
+                type: "answer",
+                content: newMessage.message,
+              } as const,
+              {
+                id: crypto.randomUUID(),
+                type: "result",
+                content: "（判定中）",
+              } as const,
+            ]
+          : []),
+      ],
+    })
+  );
+
   const [messages, setMessages] = useState<Message[]>([]);
-  const [formType, setFormType] = useState<"question" | "answer">("question");
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [showAnswer, setShowAnswer] = useState(false);
   const [images, setImages] = useState<{ a: string; b: string } | null>(null);
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const message = formData.get("message") as string;
-    const id = crypto.randomUUID();
-    const idA = crypto.randomUUID();
-    const idB = crypto.randomUUID();
-    setMessages((prev) => [
-      ...prev,
-      { id, type: "question", content: message },
-      { id: idA, type: "a", content: "（考え中）" },
-      { id: idB, type: "b", content: "（考え中）" },
-    ]);
-
-    void (async () => {
-      const res = await fetch("/chat/api", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "question",
-          target: "a",
-          message: message,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch data from OpenAI API");
-      }
-      const response = await res.json();
-      console.log(response.message.content);
-
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === idA
-            ? { ...message, content: response.message.content }
-            : message
-        )
-      );
-    })();
-
-    void (async () => {
-      const res = await fetch("/chat/api", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "question",
-          target: "b",
-          message: message,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch data from OpenAI API");
-      }
-      const response = await res.json();
-      console.log(response.message.content);
-
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === idB
-            ? { ...message, content: response.message.content }
-            : message
-        )
-      );
-    })();
-  };
-
-  const handleAnswer = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const answer = formData.get("answer") as string;
-
-    const id = crypto.randomUUID();
-    const idResult = crypto.randomUUID();
-    setMessages((prev) => [
-      ...prev,
-      { id: id, type: "answer", content: answer },
-      { id: idResult, type: "result", content: "（判定中）" },
-    ]);
-    // setAnswers((prev) => [...prev, answer]);
-
-    void (async () => {
-      const res = await fetch("/chat/api", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "answer",
-          message: answer,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch data from OpenAI API");
-      }
-      const response = await res.json();
-      console.log(response.message.content);
-
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === idResult
-            ? { ...message, content: response.message.content }
-            : message
-        )
-      );
-    })();
-  };
 
   const handleGetAnswer = async () => {
     const answerData = await getDataset(selectedIndex);
@@ -146,7 +85,7 @@ export const Message = () => {
           <Visual />
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-6  p-4 border-gray-300">
-          {messages.map((message, index) =>
+          {optimisticMessages.messages.map((message, index) =>
             message.type === "question" ? (
               <p
                 key={index}
@@ -194,82 +133,48 @@ export const Message = () => {
         </button>
       </section>
 
-      <div className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
-        {/* タブUIでformTypeを選択する */}
-        <div role="tablist" className="flex">
-          <button
-            role="tab"
-            aria-selected={formType === "question"}
-            onClick={() => setFormType("question")}
-            className={`px-4 py-2 rounded-lg ${
-              formType === "question"
-                ? "bg-slate-500 text-white"
-                : "bg-gray-200 text-gray-700"
-            }`}
-          >
-            質問する
-          </button>
-          <button
-            role="tab"
-            aria-selected={formType === "answer"}
-            onClick={() => setFormType("answer")}
-            className={`px-4 py-2 rounded-lg ml-2 ${
-              formType === "answer"
-                ? "bg-slate-500 text-white"
-                : "bg-gray-200 text-gray-700"
-            }`}
-          >
-            答える
-          </button>
-        </div>
+      <section className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
+        {/* 質問・解答フォーム */}
+        <form
+          action={dispatch}
+          onSubmit={(event) => {
+            const formData = new FormData(event.currentTarget);
+            const message = formData.get("message") as string;
+            const type = formData.get("type") as "question" | "answer";
+            startTransition(() => {
+              addOptimisticMessage({
+                type: type,
+                message: message,
+              });
+            });
+          }}
+          className="flex"
+        >
+          <label className="grow flex items-center">
+            <input type="radio" name="type" value="question" />
+            質問
+          </label>
+          <label className="grow flex items-center">
+            <input type="radio" name="type" value="answer" />
+            解答
+          </label>
 
-        {/* 質問フォーム */}
-        <div role="tabpanel" hidden={formType !== "question"}>
-          <form
-            onSubmit={handleSubmit}
-            className="flex"
-            hidden={formType !== "question"}
+          <label className="grow flex items-center">
+            内容
+            <input
+              type="text"
+              name="message"
+              className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
+            />
+          </label>
+          <button
+            type="submit"
+            className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
           >
-            <label className="grow flex items-center">
-              質問内容
-              <input
-                type="text"
-                name="message"
-                className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
-              />
-            </label>
-            <button
-              type="submit"
-              className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
-            >
-              質問する
-            </button>
-          </form>
-        </div>
-        {/* 解答フォーム */}
-        <div role="tabpanel" hidden={formType !== "answer"}>
-          <form
-            onSubmit={handleAnswer}
-            className="flex"
-            hidden={formType !== "answer"}
-          >
-            <label className="grow flex items-center">
-              解答内容
-              <input
-                type="text"
-                name="answer"
-                className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
-              />
-              <button
-                type="submit"
-                className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
-              >
-                答える
-              </button>
-            </label>
-          </form>
-        </div>
-      </div>
+            送信
+          </button>
+        </form>
+      </section>
     </section>
   );
 };
