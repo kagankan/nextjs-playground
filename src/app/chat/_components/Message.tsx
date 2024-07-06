@@ -1,6 +1,13 @@
 "use client";
 
-import { startTransition, useOptimistic, useState } from "react";
+import {
+  createRef,
+  startTransition,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import { Visual } from "./Visual";
 import { chatAction, getDataset } from "../api/actions";
 import { useFormState } from "react-dom";
@@ -16,8 +23,16 @@ export const Message = () => {
     quizIndex: -1,
     messages: [],
   });
-  console.log("Message");
-  console.log(state);
+
+  // 送信時にフォームをリセット
+  // FIXME: 動作に基づく処理をuseEffectでやるのよくないのでどうにかしたい
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  });
+
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     state,
     (
@@ -184,6 +199,7 @@ export const Message = () => {
                 <label className="grow flex items-center">
                   内容
                   <input
+                    ref={inputRef}
                     type="text"
                     name="message"
                     className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
