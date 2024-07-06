@@ -18,7 +18,15 @@ type Message = {
   content: string;
 };
 
-export const Message = () => {
+export const Message = ({
+  dataset,
+}: {
+  dataset: {
+    a: string;
+    b: string;
+    answer: string;
+  }[];
+}) => {
   const [state, dispatch] = useFormState(chatAction, {
     quizIndex: -1,
     messages: [],
@@ -81,12 +89,7 @@ export const Message = () => {
     })
   );
 
-  const [images, setImages] = useState<{ a: string; b: string } | null>(null);
-
-  const handleGetAnswer = async () => {
-    const answerData = await getDataset(state.quizIndex);
-    setImages({ a: answerData.a, b: answerData.b });
-  };
+  const images = dataset[state.quizIndex];
 
   return (
     <section>
@@ -155,18 +158,15 @@ export const Message = () => {
                   )
                 )}
               </div>
-              {images != null && (
+
+              <details>
+                <summary className="bg-slate-500 text-white px-4 py-2 rounded-lg">
+                  答えを表示
+                </summary>
                 <div className="p-4">
                   <Visual imageUrlA={images.a} imageUrlB={images.b} />
                 </div>
-              )}
-              <button
-                type="button"
-                onClick={() => handleGetAnswer()}
-                className="bg-slate-500 text-white px-4 py-2 rounded-lg"
-              >
-                答えを表示
-              </button>
+              </details>
             </section>
 
             <section className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
