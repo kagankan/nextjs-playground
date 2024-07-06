@@ -3,20 +3,26 @@
 import { useState } from "react";
 
 export const Message = () => {
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messagesA, setMessagesA] = useState<string[]>([]);
+  const [messagesB, setMessagesB] = useState<string[]>([]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const message = formData.get("message") as string;
-    setMessages((prev) => [...prev, message]);
+    setMessagesA((prev) => [...prev, message]);
+    setMessagesB((prev) => [...prev, message]);
 
-    (async () => {
+    void (async () => {
       const res = await fetch("/chat/api", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: message }),
+        body: JSON.stringify({
+          type: "question",
+          target: "a",
+          message: message,
+        }),
       });
       if (!res.ok) {
         throw new Error("Failed to fetch data from OpenAI API");
@@ -24,7 +30,28 @@ export const Message = () => {
       const response = await res.json();
       console.log(response.message.content);
 
-      setMessages((prev) => [...prev, response.message.content]);
+      setMessagesA((prev) => [...prev, response.message.content]);
+    })();
+
+    void (async () => {
+      const res = await fetch("/chat/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "question",
+          target: "b",
+          message: message,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch data from OpenAI API");
+      }
+      const response = await res.json();
+      console.log(response.message.content);
+
+      setMessagesB((prev) => [...prev, response.message.content]);
     })();
   };
   return (
@@ -38,11 +65,18 @@ export const Message = () => {
         />
         <button type="submit">Send</button>
       </form>
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index}>{message}</li>
-        ))}
-      </ul>
+      <div className="flex flex-col space-y-4 h-96 overflow-y-scroll bg-gray-100 p-4 border-2 border-gray-300 rounded-lg">
+        <ul>
+          {messagesA.map((message, index) => (
+            <li key={index}>{message}</li>
+          ))}
+        </ul>
+        <ul>
+          {messagesB.map((message, index) => (
+            <li key={index}>{message}</li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 };

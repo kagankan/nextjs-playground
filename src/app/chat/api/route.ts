@@ -1,17 +1,21 @@
 import fs from "node:fs";
 
-const imagePath = process.cwd() + "/src/app/chat/api/_images/kid_toy_neji.png";
-console.log(imagePath);
-const imageBuffer = fs.readFileSync(imagePath);
-const imageBase64 = imageBuffer.toString("base64");
-const imageUrl = `data:image/png;base64,${imageBase64}`;
-console.log("route.ts");
-console.log(imageUrl);
+const imagePathA =
+  process.cwd() + "/src/app/chat/api/_images/mark_manpu12_hirameki_a.png";
+const imageBufferA = fs.readFileSync(imagePathA);
+const imageBase64A = imageBufferA.toString("base64");
+const imageUrlA = `data:image/png;base64,${imageBase64A}`;
+const imagePathB =
+  process.cwd() + "/src/app/chat/api/_images/mark_manpu12_hirameki_b.png";
+const imageBufferB = fs.readFileSync(imagePathB);
+const imageBase64B = imageBufferB.toString("base64");
+const imageUrlB = `data:image/png;base64,${imageBase64B}`;
+
 type MessageForGpt = {
   role: "user" | "system" | "assistant";
   content:
     | string
-    | { type: string; text?: string; image_url?: { url: string } }[];
+    | readonly { type: string; text?: string; image_url?: { url: string } }[];
 };
 
 type OpenAiResponse = {
@@ -40,37 +44,55 @@ type Usage = {
   total_tokens: number;
 };
 
+type Params =
+  | {
+      type: "question";
+      message: string;
+      target: "a" | "b";
+    }
+  | {
+      type: "answer";
+      message: string;
+    };
+
 export async function POST(request: Request) {
-  const requestBody = await request.json();
+  const requestBody: Params = await request.json();
   console.log(requestBody);
   console.log(request.url);
-  const { message } = requestBody;
+
   const prompts = JSON.stringify({
     messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: message },
-          {
-            type: "image_url",
-            image_url: {
-              url: imageUrl,
+      ...(requestBody.type === "question"
+        ? ([
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "この画像について、質問に答えてください。",
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: requestBody.target === "a" ? imageUrlA : imageUrlB,
+                  },
+                },
+              ],
             },
-          },
-        ],
-      },
 
-      {
-        role: "assistant",
-        content: `
+            {
+              role: "assistant",
+              content: `
               ## 必須条件
               - 文字数は100文字以内で返してください。
               - 回答できない内容の場合は、「その質問には回答できません。適切な質問をお送りください。」と返答してください。
             `,
-      },
+            },
+          ] as const)
+        : []),
       {
         role: "user",
-        content: `${message}`,
+        content: `${requestBody.message}`,
       },
     ] as const satisfies MessageForGpt[],
     model: "gpt-4o",
