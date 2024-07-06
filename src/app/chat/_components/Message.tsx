@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Visual } from "./Visual";
+import { getDataset } from "../api/actions";
 
 type Message = {
   id: string;
@@ -12,6 +13,9 @@ type Message = {
 export const Message = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [formType, setFormType] = useState<"question" | "answer">("question");
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [images, setImages] = useState<{ a: string; b: string } | null>(null);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -122,6 +126,19 @@ export const Message = () => {
     })();
   };
 
+  const handleGetAnswer = async () => {
+    const answerData = await getDataset(selectedIndex);
+    setImages({ a: answerData.a, b: answerData.b });
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: "result",
+        content: `正解は「${answerData.answer}」です。`,
+      },
+    ]);
+  };
+
   return (
     <section className="grow grid grid-cols-1 grid-rows-[minmax(0,1fr)_auto]">
       <section className="min-h-64 bg-white rounded-lg border-2">
@@ -163,6 +180,18 @@ export const Message = () => {
             )
           )}
         </div>
+        {images != null && (
+          <div className="p-4">
+            <Visual imageUrlA={images.a} imageUrlB={images.b} />
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => handleGetAnswer()}
+          className="bg-slate-500 text-white px-4 py-2 rounded-lg"
+        >
+          答えを表示
+        </button>
       </section>
 
       <div className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
