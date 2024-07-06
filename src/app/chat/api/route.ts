@@ -89,7 +89,27 @@ export async function POST(request: Request) {
             `,
             },
           ] as const)
-        : []),
+        : ([
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "間違い探しの判定役になってください。模範解答は「上部の線の大きさが違う」です。",
+                },
+                { type: "image_url", image_url: { url: imageUrlA } },
+                { type: "image_url", image_url: { url: imageUrlB } },
+              ],
+            },
+            {
+              role: "assistant",
+              content: `
+              ## 必須条件
+              - 解答が正しければ「正解」、間違っていれば「不正解」と返してください。
+              - 質問には答えてはいけません。
+            `,
+            },
+          ] as const)),
       {
         role: "user",
         content: `${requestBody.message}`,

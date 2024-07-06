@@ -5,6 +5,7 @@ import { useState } from "react";
 export const Message = () => {
   const [messagesA, setMessagesA] = useState<string[]>([]);
   const [messagesB, setMessagesB] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[]>([]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -54,6 +55,34 @@ export const Message = () => {
       setMessagesB((prev) => [...prev, response.message.content]);
     })();
   };
+
+  const handleAnswer = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const answer = formData.get("answer") as string;
+    setAnswers((prev) => [...prev, answer]);
+
+    void (async () => {
+      const res = await fetch("/chat/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "answer",
+          message: answer,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch data from OpenAI API");
+      }
+      const response = await res.json();
+      console.log(response.message.content);
+
+      setAnswers((prev) => [...prev, response.message.content]);
+    })();
+  };
+
   return (
     <section>
       <form onSubmit={handleSubmit}>
@@ -77,6 +106,18 @@ export const Message = () => {
           ))}
         </ul>
       </div>
+      <form onSubmit={handleAnswer}>
+        <label>
+          答える
+          <input type="text" name="answer" />
+          <button type="submit">Send</button>
+        </label>
+      </form>
+      <ul>
+        {answers.map((answer, index) => (
+          <li key={index}>{answer}</li>
+        ))}
+      </ul>
     </section>
   );
 };
