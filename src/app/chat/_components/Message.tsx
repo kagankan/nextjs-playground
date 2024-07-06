@@ -12,7 +12,12 @@ type Message = {
 };
 
 export const Message = () => {
-  const [state, dispatch] = useFormState(chatAction, { messages: [] });
+  const [state, dispatch] = useFormState(chatAction, {
+    quizIndex: -1,
+    messages: [],
+  });
+  console.log("Message");
+  console.log(state);
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     state,
     (
@@ -61,119 +66,139 @@ export const Message = () => {
     })
   );
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [images, setImages] = useState<{ a: string; b: string } | null>(null);
 
   const handleGetAnswer = async () => {
-    const answerData = await getDataset(selectedIndex);
+    const answerData = await getDataset(state.quizIndex);
     setImages({ a: answerData.a, b: answerData.b });
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        type: "result",
-        content: `正解は「${answerData.answer}」です。`,
-      },
-    ]);
   };
 
   return (
-    <section className="grow grid grid-cols-1 grid-rows-[minmax(0,1fr)_auto]">
-      <section className="min-h-64 bg-white rounded-lg border-2">
-        <div className="p-8">
-          <Visual />
-        </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-6  p-4 border-gray-300">
-          {optimisticMessages.messages.map((message, index) =>
-            message.type === "question" ? (
-              <p
-                key={index}
-                className="px-4 py-2 rounded-3xl justify-self-end col-span-2 bg-slate-100"
-              >
-                Q. {message.content}
-              </p>
-            ) : message.type === "answer" ? (
-              <p
-                key={index}
-                className="px-4 py-2 rounded-3xl justify-self-end  col-span-2 bg-slate-100"
-              >
-                A. {message.content}
-              </p>
-            ) : message.type === "result" ? (
-              <p
-                key={index}
-                className="px-4 py-2 rounded-3xl justify-self-start col-span-2 bg-slate-100"
-              >
-                {message.content}
-              </p>
-            ) : (
-              <p
-                key={index}
-                className={`px-4 py-2 rounded-3xl self-start ${
-                  message.type === "a" ? "bg-red-100" : "bg-blue-100"
-                }`}
-              >
-                {message.content}
-              </p>
-            )
-          )}
-        </div>
-        {images != null && (
-          <div className="p-4">
-            <Visual imageUrlA={images.a} imageUrlB={images.b} />
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => handleGetAnswer()}
-          className="bg-slate-500 text-white px-4 py-2 rounded-lg"
-        >
-          答えを表示
-        </button>
-      </section>
-
-      <section className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
-        {/* 質問・解答フォーム */}
-        <form
-          action={dispatch}
-          onSubmit={(event) => {
-            const formData = new FormData(event.currentTarget);
-            const message = formData.get("message") as string;
-            const type = formData.get("type") as "question" | "answer";
-            startTransition(() => {
-              addOptimisticMessage({
-                type: type,
-                message: message,
-              });
-            });
-          }}
-          className="flex"
-        >
-          <label className="grow flex items-center">
-            <input type="radio" name="type" value="question" />
-            質問
-          </label>
-          <label className="grow flex items-center">
-            <input type="radio" name="type" value="answer" />
-            解答
-          </label>
-
-          <label className="grow flex items-center">
-            内容
-            <input
-              type="text"
-              name="message"
-              className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
-            />
-          </label>
+    <section>
+      <div className="flex flex-col space-y-4">
+        <h2>問題を選択</h2>
+        <form action={dispatch} className="flex gap-2">
+          <input type="hidden" name="type" value="change" />
+          <input type="hidden" name="message" value="" />
           <button
             type="submit"
-            className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
+            name="quizIndex"
+            value={0}
+            className="bg-blue-500 text-white py-2 px-4 rounded"
           >
-            送信
+            0
+          </button>
+          <button
+            type="submit"
+            name="quizIndex"
+            value={1}
+            className="bg-blue-500 text-white py-2 px-4 rounded"
+          >
+            1
           </button>
         </form>
+      </div>
+      <section className="grow grid grid-cols-1 grid-rows-[minmax(0,1fr)_auto]">
+        {state.quizIndex >= 0 && (
+          <>
+            <section className="min-h-64 bg-white rounded-lg border-2">
+              <div className="p-8">
+                <Visual />
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6  p-4 border-gray-300">
+                {optimisticMessages.messages.map((message, index) =>
+                  message.type === "question" ? (
+                    <p
+                      key={index}
+                      className="px-4 py-2 rounded-3xl justify-self-end col-span-2 bg-slate-100"
+                    >
+                      Q. {message.content}
+                    </p>
+                  ) : message.type === "answer" ? (
+                    <p
+                      key={index}
+                      className="px-4 py-2 rounded-3xl justify-self-end  col-span-2 bg-slate-100"
+                    >
+                      A. {message.content}
+                    </p>
+                  ) : message.type === "result" ? (
+                    <p
+                      key={index}
+                      className="px-4 py-2 rounded-3xl justify-self-start col-span-2 bg-slate-100"
+                    >
+                      {message.content}
+                    </p>
+                  ) : (
+                    <p
+                      key={index}
+                      className={`px-4 py-2 rounded-3xl self-start ${
+                        message.type === "a" ? "bg-red-100" : "bg-blue-100"
+                      }`}
+                    >
+                      {message.content}
+                    </p>
+                  )
+                )}
+              </div>
+              {images != null && (
+                <div className="p-4">
+                  <Visual imageUrlA={images.a} imageUrlB={images.b} />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => handleGetAnswer()}
+                className="bg-slate-500 text-white px-4 py-2 rounded-lg"
+              >
+                答えを表示
+              </button>
+            </section>
+
+            <section className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
+              {/* 質問・解答フォーム */}
+              <form
+                action={dispatch}
+                onSubmit={(event) => {
+                  const formData = new FormData(event.currentTarget);
+                  const message = formData.get("message") as string;
+                  const type = formData.get("type") as "question" | "answer";
+                  startTransition(() => {
+                    addOptimisticMessage({
+                      type: type,
+                      message: message,
+                    });
+                  });
+                }}
+                className="flex"
+              >
+                <input type="hidden" name="quizIndex" value={state.quizIndex} />
+                <label className="grow flex items-center">
+                  <input type="radio" name="type" value="question" />
+                  質問
+                </label>
+                <label className="grow flex items-center">
+                  <input type="radio" name="type" value="answer" />
+                  解答
+                </label>
+
+                <label className="grow flex items-center">
+                  内容
+                  <input
+                    type="text"
+                    name="message"
+                    className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
+                >
+                  送信
+                </button>
+              </form>
+            </section>
+          </>
+        )}
       </section>
     </section>
   );

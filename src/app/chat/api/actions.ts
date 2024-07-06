@@ -40,14 +40,20 @@ type Usage = {
   total_tokens: number;
 };
 
-const RequestSchema = z.object({
-  type: z.union([z.literal("question"), z.literal("answer")]),
+const requestSchema = z.object({
+  type: z.union([
+    z.literal("question"),
+    z.literal("answer"),
+    z.literal("change"),
+  ]),
   message: z.string(),
+  quizIndex: z.coerce.number(),
 });
 
-type Params = z.infer<typeof RequestSchema>;
+type Params = z.infer<typeof requestSchema>;
 
 type State = {
+  quizIndex: number;
   messages: {
     id: string;
     type: "question" | "a" | "b" | "answer" | "result";
@@ -60,24 +66,28 @@ export async function chatAction(
   state: State,
   formData: FormData
 ): Promise<State> {
-  console.log("chatAction");
-  console.log(formData.get("type"));
-  console.log(formData.get("message"));
-  console.log(formData.get("target"));
-  //   const requestBody: Params = await request.json();
-  const validatedData = RequestSchema.safeParse({
+  const validatedData = requestSchema.safeParse({
     type: formData.get("type"),
     message: formData.get("message"),
+    quizIndex: formData.get("quizIndex"),
   });
   console.log(validatedData);
   if (!validatedData.success) {
     return {
+      quizIndex: state.quizIndex,
       messages: state.messages,
       errors: validatedData.error.flatten().fieldErrors,
     };
   }
 
-  const dataset0 = dataset[0];
+  if (validatedData.data.type === "change") {
+    return {
+      quizIndex: validatedData.data.quizIndex,
+      messages: [],
+    };
+  }
+
+  const quizData = dataset[validatedData.data.quizIndex];
 
   const requestGpt = async (
     requestType: "question" | "answer",
@@ -98,7 +108,7 @@ export async function chatAction(
                   {
                     type: "image_url",
                     image_url: {
-                      url: requestTarget === "a" ? dataset0.a : dataset0.b,
+                      url: requestTarget === "a" ? quizData.a : quizData.b,
                     },
                   },
                 ],
@@ -119,10 +129,10 @@ export async function chatAction(
                 content: [
                   {
                     type: "text",
-                    text: `間違い探しの判定役になってください。模範解答は「${dataset0.answer}」です。`,
+                    text: `間違い探しの判定役になってください。模範解答は「${quizData.answer}」です。`,
                   },
-                  { type: "image_url", image_url: { url: dataset0.a } },
-                  { type: "image_url", image_url: { url: dataset0.b } },
+                  { type: "image_url", image_url: { url: quizData.a } },
+                  { type: "image_url", image_url: { url: quizData.b } },
                 ],
               },
               {
@@ -166,6 +176,7 @@ export async function chatAction(
     const data = await requestGpt("answer", message);
     const response = data.choices[0].message.content;
     return {
+      quizIndex: state.quizIndex,
       messages: [
         ...state.messages,
         {
@@ -188,6 +199,7 @@ export async function chatAction(
   const dataB = await requestGpt("question", message, "b");
   const responseB = dataB.choices[0].message.content;
   return {
+    quizIndex: state.quizIndex,
     messages: [
       ...state.messages,
       {
