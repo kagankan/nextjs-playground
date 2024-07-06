@@ -13,7 +13,7 @@ export const Visual = ({
     <div className="w-full grid grid-cols-2 gap-[5%] ">
       <div className="relative pb-8 pl-8">
         {imageUrlA ? (
-          <div className=" aspect-video">
+          <div className=" aspect-video relative">
             <Image src={imageUrlA} alt="" fill style={{
           objectFit: 'contain',
         }}/>
@@ -31,7 +31,7 @@ export const Visual = ({
       </div>
       <div className="relative pb-8 pr-8">
         {imageUrlB ? (
-          <div className=" aspect-video">
+          <div className=" aspect-video relative">
             <Image src={imageUrlB} alt="" fill style={{
           objectFit: 'contain',
         }}/>
