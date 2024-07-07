@@ -1,6 +1,11 @@
+import { Metadata } from "next";
 import { Hero } from "./_components/Hero";
 import { Message } from "./_components/Message";
 import { dataset } from "./api/dataset";
+
+export const metadata: Metadata = {
+  title: "見えない間違い探し",
+};
 
 export default function Chat() {
   return (
