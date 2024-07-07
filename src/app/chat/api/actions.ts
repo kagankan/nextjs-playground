@@ -1,7 +1,7 @@
 "use server";
 
 import { dataset } from "./dataset";
-import { z } from "zod";
+import { requestSchema } from "./schema";
 
 export const getDataset = async (id: number) => {
   return dataset[id];
@@ -40,18 +40,6 @@ type Usage = {
   total_tokens: number;
 };
 
-const requestSchema = z.object({
-  type: z.union([
-    z.literal("question"),
-    z.literal("answer"),
-    z.literal("change"),
-  ]),
-  message: z.string(),
-  quizIndex: z.coerce.number(),
-});
-
-type Params = z.infer<typeof requestSchema>;
-
 type State = {
   quizIndex: number;
   messages: {
@@ -66,6 +54,7 @@ export async function chatAction(
   state: State,
   formData: FormData
 ): Promise<State> {
+  console.log(formData);
   const validatedData = requestSchema.safeParse({
     type: formData.get("type"),
     message: formData.get("message"),

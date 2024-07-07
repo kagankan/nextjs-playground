@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  createRef,
+  FormEvent,
   startTransition,
   useEffect,
   useOptimistic,
@@ -11,6 +11,9 @@ import {
 import { Visual } from "./Visual";
 import { chatAction, getDataset } from "../api/actions";
 import { useFormState } from "react-dom";
+import { questionSchema } from "../api/schema";
+import { getFormProps, getInputProps, useForm } from "@conform-to/react";
+import { getZodConstraint, parseWithZod } from "@conform-to/zod";
 
 type Message = {
   id: string;
@@ -30,6 +33,34 @@ export const Message = ({
   const [state, dispatch] = useFormState(chatAction, {
     quizIndex: -1,
     messages: [],
+  });
+
+  const [scriptEnabled, setScriptEnabled] = useState(false);
+  useEffect(() => {
+    setScriptEnabled(true);
+  }, []);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(event.currentTarget);
+    const message = formData.get("message") as string;
+    const type = formData.get("type") as "question" | "answer";
+    startTransition(() => {
+      addOptimisticMessage({
+        type: type,
+        message: message,
+      });
+    });
+  };
+
+  const [form, fields] = useForm({
+    // lastResult,
+    // shouldValidate: "onBlur",
+    // shouldRevalidate: "onInput",
+    constraint: getZodConstraint(questionSchema),
+    onValidate: ({ formData }) => {
+      return parseWithZod(formData, { schema: questionSchema });
+    },
+    onSubmit: handleSubmit,
   });
 
   // 送信時にフォームをリセット
@@ -95,7 +126,7 @@ export const Message = ({
     <section>
       <div className="flex flex-col space-y-4">
         <h2>問題を選択</h2>
-        <form action={dispatch} className="flex gap-2">
+        <form action={dispatch} className="flex gap-2" id="questions-select">
           <input type="hidden" name="type" value="change" />
           <input type="hidden" name="message" value="" />
           <button
@@ -173,17 +204,8 @@ export const Message = ({
               {/* 質問・解答フォーム */}
               <form
                 action={dispatch}
-                onSubmit={(event) => {
-                  const formData = new FormData(event.currentTarget);
-                  const message = formData.get("message") as string;
-                  const type = formData.get("type") as "question" | "answer";
-                  startTransition(() => {
-                    addOptimisticMessage({
-                      type: type,
-                      message: message,
-                    });
-                  });
-                }}
+                {...getFormProps(form)}
+                noValidate={scriptEnabled}
                 className="flex"
               >
                 <input type="hidden" name="quizIndex" value={state.quizIndex} />
@@ -200,11 +222,11 @@ export const Message = ({
                   内容
                   <input
                     ref={inputRef}
-                    type="text"
-                    name="message"
                     className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
+                    {...getInputProps(fields.message, { type: "text" })}
                   />
                 </label>
+                <p id={fields.message.errorId}>{fields.message.errors}</p>
                 <button
                   type="submit"
                   className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
