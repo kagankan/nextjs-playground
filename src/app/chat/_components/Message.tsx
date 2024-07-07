@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { Visual } from "./Visual";
-import { chatAction, getDataset } from "../api/actions";
+import { chatAction } from "../api/actions";
 import { useFormState } from "react-dom";
 import { questionSchema } from "../api/schema";
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";

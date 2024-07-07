@@ -4,10 +4,6 @@ import OpenAI from "openai";
 import { dataset } from "./dataset";
 import { requestSchema } from "./schema";
 
-export const getDataset = async (id: number) => {
-  return dataset[id];
-};
-
 type State = {
   quizIndex: number;
   messages: {
