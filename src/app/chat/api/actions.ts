@@ -1,43 +1,11 @@
 "use server";
 
+import OpenAI from "openai";
 import { dataset } from "./dataset";
 import { requestSchema } from "./schema";
 
 export const getDataset = async (id: number) => {
   return dataset[id];
-};
-
-type MessageForGpt = {
-  role: "user" | "system" | "assistant";
-  content:
-    | string
-    | readonly { type: string; text?: string; image_url?: { url: string } }[];
-};
-
-type OpenAiResponse = {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: Choice[];
-  usage: Usage;
-};
-
-type Choice = {
-  message: Message;
-  finish_reason: string;
-  index: number;
-};
-
-type Message = {
-  role: string;
-  content: string;
-};
-
-type Usage = {
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
 };
 
 type State = {
@@ -49,6 +17,10 @@ type State = {
   }[];
   errors?: Record<string, string[] | undefined>;
 };
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function chatAction(
   state: State,
@@ -83,19 +55,19 @@ export async function chatAction(
     requestMessage: string,
     requestTarget?: "a" | "b"
   ) => {
-    const prompts = JSON.stringify({
+    const chatCompletion = await openai.chat.completions.create({
       messages: [
         ...(requestType === "question"
-          ? ([
+          ? [
               {
-                role: "user",
+                role: "user" as const,
                 content: [
                   {
-                    type: "text",
+                    type: "text" as const,
                     text: "この画像について、質問に答えてください。",
                   },
                   {
-                    type: "image_url",
+                    type: "image_url" as const,
                     image_url: {
                       url: requestTarget === "a" ? quizData.a : quizData.b,
                     },
@@ -104,59 +76,51 @@ export async function chatAction(
               },
 
               {
-                role: "assistant",
+                role: "assistant" as const,
                 content: `
-              ## 必須条件
-              - 文字数は100文字以内で返してください。
-              - 回答できない内容の場合は、「その質問には回答できません。適切な質問をお送りください。」と返答してください。
-            `,
+                ## 必須条件
+                - 文字数は100文字以内で返してください。
+                - 回答できない内容の場合は、「その質問には回答できません。適切な質問をお送りください。」と返答してください。
+              `,
               },
-            ] as const)
-          : ([
+            ]
+          : [
               {
-                role: "user",
+                role: "user" as const,
                 content: [
                   {
-                    type: "text",
+                    type: "text" as const,
                     text: `間違い探しの判定役になってください。模範解答は「${quizData.answer}」です。`,
                   },
-                  { type: "image_url", image_url: { url: quizData.a } },
-                  { type: "image_url", image_url: { url: quizData.b } },
+                  {
+                    type: "image_url" as const,
+                    image_url: { url: quizData.a },
+                  },
+                  {
+                    type: "image_url" as const,
+                    image_url: { url: quizData.b },
+                  },
                 ],
               },
               {
-                role: "assistant",
+                role: "assistant" as const,
                 content: `
-              ## 必須条件
-              - 解答が正しければ「正解」、間違っていれば「不正解」と返してください。
-              - 質問には答えてはいけません。
-            `,
+                ## 必須条件
+                - 解答が正しければ「正解」、間違っていれば「不正解」と返してください。
+                - 質問には答えてはいけません。
+              `,
               },
-            ] as const)),
+            ]),
         {
           role: "user",
           content: `${requestMessage}`,
         },
-      ] as const satisfies MessageForGpt[],
+      ],
       model: "gpt-4o",
+      temperature: 0.0,
     });
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: prompts,
-    });
-
-    if (!res.ok) {
-      console.log(res);
-      throw new Error("Failed to fetch data from OpenAI API");
-    }
-
-    const data: OpenAiResponse = await res.json();
-    return data;
+    return chatCompletion;
   };
 
   const { message, type } = validatedData.data;
@@ -164,6 +128,7 @@ export async function chatAction(
   if (type === "answer") {
     const data = await requestGpt("answer", message);
     const response = data.choices[0].message.content;
+
     return {
       quizIndex: state.quizIndex,
       messages: [
@@ -176,7 +141,7 @@ export async function chatAction(
         {
           id: crypto.randomUUID(),
           type: "result",
-          content: response,
+          content: response == null ? "エラー" : response,
         },
       ],
     };
@@ -199,12 +164,12 @@ export async function chatAction(
       {
         id: crypto.randomUUID(),
         type: "a",
-        content: responseA,
+        content: responseA == null ? "エラー" : responseA,
       },
       {
         id: crypto.randomUUID(),
         type: "b",
-        content: responseB,
+        content: responseB == null ? "エラー" : responseB,
       },
     ],
   };
