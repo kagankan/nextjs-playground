@@ -5,7 +5,6 @@ import {
   startTransition,
   useEffect,
   useOptimistic,
-  useRef,
   useState,
 } from "react";
 import { Visual } from "./Visual";
@@ -35,14 +34,22 @@ export const Message = ({
     quizIndex: -1,
     messages: [],
   });
-
   const [scriptEnabled, setScriptEnabled] = useState(false);
   useEffect(() => {
     setScriptEnabled(true);
   }, []);
+  const [clearFormKey, setClearFormKey] = useState(0);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    setClearFormKey((prev) => prev + 1);
     const formData = new FormData(event.currentTarget);
+    // https://www.sunapro.com/form-multiple-submit-button/
+    formData.set(
+      // @ts-expect-error
+      event.nativeEvent.submitter.name,
+      // @ts-expect-error
+      event.nativeEvent.submitter.value
+    );
     const message = formData.get("message") as string;
     const type = formData.get("type") as "question" | "answer";
     startTransition(() => {
@@ -53,25 +60,22 @@ export const Message = ({
     });
   };
 
-  const formSchema = z.union([answerSchema, questionSchema]);
+  const formSchema = z.discriminatedUnion("type", [
+    answerSchema,
+    questionSchema,
+  ]);
   const [form, fields] = useForm({
     // lastResult,
     // shouldValidate: "onBlur",
     // shouldRevalidate: "onInput",
+    id: `${clearFormKey}`,
     constraint: getZodConstraint(formSchema),
     onValidate: ({ formData }) => {
-      return parseWithZod(formData, { schema: formSchema });
+      const result = parseWithZod(formData, { schema: formSchema });
+      console.log(result);
+      return result;
     },
     onSubmit: handleSubmit,
-  });
-
-  // 送信時にフォームをリセット
-  // FIXME: 動作に基づく処理をuseEffectでやるのよくないのでどうにかしたい
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
   });
 
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
@@ -203,33 +207,41 @@ export const Message = ({
                 action={dispatch}
                 {...getFormProps(form)}
                 noValidate={scriptEnabled}
-                className="flex"
               >
                 <input type="hidden" name="quizIndex" value={state.quizIndex} />
-                <label className="grow flex items-center">
-                  <input type="radio" name="type" value="question" />
-                  質問
-                </label>
-                <label className="grow flex items-center">
-                  <input type="radio" name="type" value="answer" />
-                  解答
-                </label>
 
-                <label className="grow flex items-center">
-                  内容
+                <div className="flex">
+                  <label
+                    className="grow flex items-center sr-only"
+                    htmlFor={fields.message.id}
+                  >
+                    送信する内容
+                  </label>
                   <input
-                    ref={inputRef}
                     className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
                     {...getInputProps(fields.message, { type: "text" })}
                   />
-                </label>
-                <p id={fields.message.errorId}>{fields.message.errors}</p>
-                <button
-                  type="submit"
-                  className="bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
-                >
-                  送信
-                </button>
+
+                  <button
+                    type="submit"
+                    name="type"
+                    value="question"
+                    className="font-bold bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
+                  >
+                    質問する
+                  </button>
+                  <button
+                    type="submit"
+                    name="type"
+                    value="answer"
+                    className=" font-bold  bg-white text-slate-500 border-2 border-slate-500 px-4 py-2 rounded-lg ml-2"
+                  >
+                    解答する
+                  </button>
+                </div>
+                <p id={fields.message.errorId} className="text-red-500">
+                  {fields.message.errors}
+                </p>
               </form>
             </section>
           </>

@@ -9,7 +9,6 @@ export const Visual = ({
   imageUrlA?: string;
   imageUrlB?: string;
 }) => {
-  console.log("Visual");
   return (
     <div className="w-full grid grid-cols-2 gap-[5%] ">
       <div className="relative pb-8 pl-8">
