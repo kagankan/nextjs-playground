@@ -78,7 +78,7 @@ export const Message = ({
     // lastResult,
     // shouldValidate: "onBlur",
     // shouldRevalidate: "onInput",
-    // id: `${clearFormKey}`,
+    id: `${state.quizIndex}`,
     constraint: getZodConstraint(formSchema),
     onValidate: ({ formData }) => {
       const result = parseWithZod(formData, { schema: formSchema });
@@ -226,6 +226,7 @@ export const Message = ({
                 className="border-2 grow-[9999] border-gray-300 bg-white h-10 px-5 rounded-lg"
                 ref={messageRef}
                 {...getInputProps(fields.message, { type: "text" })}
+                maxLength={undefined} // 入力できないと不便なので制限しない
               />
 
               <div className="flex gap-2 grow justify-end">

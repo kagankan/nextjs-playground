@@ -5,7 +5,7 @@ export const questionSchema = z.object({
   message: z
     .string({ required_error: "質問を入力してください。" })
     .min(1, { message: "質問を入力してください。" })
-    .max(30, { message: "30文字以内でお願いします。" }),
+    .max(50, { message: "50文字以内でお願いします。" }),
   quizIndex: z.coerce.number().int(),
 });
 
@@ -14,7 +14,7 @@ export const answerSchema = z.object({
   message: z
     .string({ required_error: "回答を入力してください。" })
     .min(1, { message: "回答を入力してください。" })
-    .max(30, { message: "30文字以内でお願いします。" }),
+    .max(50, { message: "50文字以内でお願いします。" }),
   quizIndex: z.coerce.number().int(),
 });
 
