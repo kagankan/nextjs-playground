@@ -52,68 +52,97 @@ export async function chatAction(
     requestTarget?: "a" | "b"
   ) => {
     const chatCompletion = await openai.chat.completions.create({
-      messages: [
-        ...(requestType === "question"
+      // https://www.promptingguide.ai/jp/introduction/settings
+      model: "gpt-4o",
+      temperature: 0.0,
+      max_tokens: 100,
+      // https://www.promptingguide.ai/jp/introduction/basics
+      messages:
+        requestType === "question"
           ? [
               {
-                role: "user" as const,
+                role: "system",
+                content: `
+              これから与えられる画像についての質問に答えてください。
+
+              ## 必須条件
+              - 100文字以内で簡潔に説明します。
+              - 画像に関係ない質問など、回答できない内容の場合には「回答できません」と返してください。
+              - 画像から読み取れる情報のみを正確に説明します。
+            `,
+              },
+              {
+                role: "user",
                 content: [
                   {
-                    type: "text" as const,
-                    text: "この画像について、質問に答えてください。",
-                  },
-                  {
-                    type: "image_url" as const,
+                    type: "image_url",
                     image_url: {
                       url: requestTarget === "a" ? quizData.a : quizData.b,
                     },
                   },
+                  {
+                    type: "text",
+                    text: `${requestMessage}`,
+                  },
                 ],
-              },
-
-              {
-                role: "assistant" as const,
-                content: `
-                ## 必須条件
-                - 文字数は100文字以内で返してください。
-                - 回答できない内容の場合は、「その質問には回答できません。適切な質問をお送りください。」と返答してください。
-              `,
               },
             ]
           : [
               {
-                role: "user" as const,
+                role: "system",
+                content: `
+                これから与えられる2枚の画像は、ほとんど同じではあるが一部のみ違う間違い探しの画像です。
+                解答に対して、間違い探しの判定役になってください。
+                ## 必須条件
+                - 2枚の画像と模範解答が与えられたあと、ユーザーの解答が送信されます。その解答に対して、正解かどうかを判定します。
+                - 判定は以降の4つの選択肢のいずれかで行います。
+                  - 解答が正しければ「正解です！」を返す。
+                    - 必ずしも模範解答と一致していなくても、画像から読み取れる違いを指摘していれば正解とします。
+                  - 間違っていれば「違います。」を返す。
+                  - 間違いではないが、本当にわかっているか怪しい場合は「曖昧です。もっと詳しく説明してください。」を返す。
+                  - 質問など、間違いの指摘ではない場合は「間違いを指摘してください。」と返す。
+                - 質問には答えない。
+                - 特に、画像の内容については触れない。
+
+                ## 判定の例（模範解答が「片方の本にだけ、表紙に「English」の文字が書かれている」の場合）
+                A: 本の表紙
+                判定: 曖昧です
+                A: 文字の有無
+                判定: 曖昧です
+                A: 本の表紙に文字がある
+                判定: 正解
+                A: 本の表紙に「English」と書かれている
+                判定: 正解
+                A: 本の色
+                判定: 違います
+                A: 本
+                判定: 曖昧です
+                A: 人
+                判定: 違います
+                `,
+              },
+              {
+                role: "user",
                 content: [
                   {
-                    type: "text" as const,
-                    text: `間違い探しの判定役になってください。模範解答は「${quizData.answer}」です。`,
+                    type: "text",
+                    text: `模範解答は「${quizData.answer}」です。`,
                   },
                   {
-                    type: "image_url" as const,
+                    type: "image_url",
                     image_url: { url: quizData.a },
                   },
                   {
-                    type: "image_url" as const,
+                    type: "image_url",
                     image_url: { url: quizData.b },
                   },
                 ],
               },
               {
-                role: "assistant" as const,
-                content: `
-                ## 必須条件
-                - 解答が正しければ「正解」、間違っていれば「不正解」と返してください。
-                - 質問には答えてはいけません。
-              `,
+                role: "user",
+                content: `A: ${requestMessage}`,
               },
-            ]),
-        {
-          role: "user",
-          content: `${requestMessage}`,
-        },
-      ],
-      model: "gpt-4o",
-      temperature: 0.0,
+            ],
     });
 
     return chatCompletion;

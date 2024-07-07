@@ -40,6 +40,6 @@ export const dataset = [
     b: getBase64Url(
       "/src/app/chat-the-difference/api/_images/study_gogaku_man7.png"
     ),
-    answer: "片方にだけ「English」の文字が書かれている",
+    answer: "片方にだけ、本の表紙に「English」の文字が書かれている",
   },
 ];
