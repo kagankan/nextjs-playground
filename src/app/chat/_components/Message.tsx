@@ -11,9 +11,10 @@ import {
 import { Visual } from "./Visual";
 import { chatAction } from "../api/actions";
 import { useFormState } from "react-dom";
-import { questionSchema } from "../api/schema";
+import { answerSchema, questionSchema } from "../api/schema";
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod";
+import { z } from "zod";
 
 type Message = {
   id: string;
@@ -52,13 +53,14 @@ export const Message = ({
     });
   };
 
+  const formSchema = z.union([answerSchema, questionSchema]);
   const [form, fields] = useForm({
     // lastResult,
     // shouldValidate: "onBlur",
     // shouldRevalidate: "onInput",
-    constraint: getZodConstraint(questionSchema),
+    constraint: getZodConstraint(formSchema),
     onValidate: ({ formData }) => {
-      return parseWithZod(formData, { schema: questionSchema });
+      return parseWithZod(formData, { schema: formSchema });
     },
     onSubmit: handleSubmit,
   });

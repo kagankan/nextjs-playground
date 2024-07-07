@@ -6,13 +6,15 @@ export const questionSchema = z.object({
   quizIndex: z.coerce.number().int(),
 });
 
+export const answerSchema = z.object({
+  type: z.literal("answer"),
+  message: z.string().min(1),
+  quizIndex: z.coerce.number().int(),
+});
+
 export const requestSchema = z.union([
   questionSchema,
-  z.object({
-    type: z.literal("answer"),
-    message: z.string().min(1),
-    quizIndex: z.coerce.number().int(),
-  }),
+  answerSchema,
   z.object({
     type: z.literal("change"),
     quizIndex: z.coerce.number().int(),
