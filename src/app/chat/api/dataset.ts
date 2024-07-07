@@ -20,6 +20,7 @@ const imagePath1B = getBase64Url(
   "/src/app/chat/api/_images/kid_toy_neji_b.png"
 );
 
+
 console.log("dataset");
 
 export const dataset = [
@@ -33,4 +34,9 @@ export const dataset = [
     b: imagePath1B,
     answer: "手の動きを表す線がない",
   },
+  {
+    a: getBase64Url("/src/app/chat/api/_images/study_gogaku_man1_english.png"),
+    b: getBase64Url("/src/app/chat/api/_images/study_gogaku_man7.png"),
+    answer: "片方にだけ「English」の文字が書かれている",
+  }
 ];

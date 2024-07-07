@@ -129,22 +129,17 @@ export const Message = ({
         <form action={dispatch} className="flex gap-2" id="questions-select">
           <input type="hidden" name="type" value="change" />
           <input type="hidden" name="message" value="" />
-          <button
-            type="submit"
-            name="quizIndex"
-            value={0}
-            className="bg-blue-500 text-white py-2 px-4 rounded"
-          >
-            0
-          </button>
-          <button
-            type="submit"
-            name="quizIndex"
-            value={1}
-            className="bg-blue-500 text-white py-2 px-4 rounded"
-          >
-            1
-          </button>
+          {dataset.map((_, index) => (
+            <button
+              key={index}
+              type="submit"
+              name="quizIndex"
+              value={index}
+              className="bg-blue-500 text-white py-2 px-4 rounded"
+            >
+              {index}
+            </button>
+          ))}
         </form>
       </div>
       <section className="grow grid grid-cols-1 grid-rows-[minmax(0,1fr)_auto]">
