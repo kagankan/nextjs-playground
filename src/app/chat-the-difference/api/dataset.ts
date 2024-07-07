@@ -7,19 +7,18 @@ const getBase64Url = (path: `/src${string}`) => {
 };
 
 const imageUrlA = getBase64Url(
-  "/src/app/chat/api/_images/mark_manpu12_hirameki_a.png"
+  "/src/app/chat-the-difference/api/_images/mark_manpu12_hirameki_a.png"
 );
 const imageUrlB = getBase64Url(
-  "/src/app/chat/api/_images/mark_manpu12_hirameki_b.png"
+  "/src/app/chat-the-difference/api/_images/mark_manpu12_hirameki_b.png"
 );
 
 const imagePath1A = getBase64Url(
-  "/src/app/chat/api/_images/kid_toy_neji_a.png"
+  "/src/app/chat-the-difference/api/_images/kid_toy_neji_a.png"
 );
 const imagePath1B = getBase64Url(
-  "/src/app/chat/api/_images/kid_toy_neji_b.png"
+  "/src/app/chat-the-difference/api/_images/kid_toy_neji_b.png"
 );
-
 
 console.log("dataset");
 
@@ -35,8 +34,12 @@ export const dataset = [
     answer: "手の動きを表す線がない",
   },
   {
-    a: getBase64Url("/src/app/chat/api/_images/study_gogaku_man1_english.png"),
-    b: getBase64Url("/src/app/chat/api/_images/study_gogaku_man7.png"),
+    a: getBase64Url(
+      "/src/app/chat-the-difference/api/_images/study_gogaku_man1_english.png"
+    ),
+    b: getBase64Url(
+      "/src/app/chat-the-difference/api/_images/study_gogaku_man7.png"
+    ),
     answer: "片方にだけ「English」の文字が書かれている",
-  }
+  },
 ];
