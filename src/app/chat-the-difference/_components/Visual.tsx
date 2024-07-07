@@ -11,7 +11,7 @@ export const Visual = ({
 }) => {
   return (
     <div className="w-full grid grid-cols-2 gap-[5%] ">
-      <div className="relative pb-8 pl-8">
+      <div className="relative pb-[min(2rem,15%)] pl-[min(2rem,15%)]">
         {imageUrlA ? (
           <div className=" aspect-video relative">
             <Image
@@ -24,8 +24,8 @@ export const Visual = ({
             />
           </div>
         ) : (
-          <div className=" text-8xl bg-red-500 text-white grid place-items-center aspect-video">
-            A
+          <div className=" text-6xl md:text-8xl bg-red-500 text-white grid place-items-center aspect-video">
+            ？
           </div>
         )}
         <Image
@@ -34,7 +34,7 @@ export const Visual = ({
           className="absolute w-1/3 max-w-24 bottom-0 left-0"
         />
       </div>
-      <div className="relative pb-8 pr-8">
+      <div className="relative pb-[min(2rem,15%)] pr-[min(2rem,15%)]">
         {imageUrlB ? (
           <div className=" aspect-video relative">
             <Image
@@ -47,8 +47,8 @@ export const Visual = ({
             />
           </div>
         ) : (
-          <div className="text-8xl bg-blue-500 text-white grid place-items-center aspect-video">
-            B
+          <div className=" text-6xl md:text-8xl bg-blue-500 text-white grid place-items-center aspect-video">
+            ？
           </div>
         )}
         <Image

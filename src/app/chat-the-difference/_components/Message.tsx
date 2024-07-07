@@ -2,9 +2,11 @@
 
 import {
   FormEvent,
+  ReactNode,
   startTransition,
   useEffect,
   useOptimistic,
+  useRef,
   useState,
 } from "react";
 import { Visual } from "./Visual";
@@ -14,6 +16,8 @@ import { answerSchema, questionSchema } from "../api/schema";
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod";
 import { z } from "zod";
+import { ChatLog } from "./ChatLog";
+import { Example } from "./Example";
 
 type Message = {
   id: string;
@@ -23,21 +27,21 @@ type Message = {
 
 export const Message = ({
   dataset,
+  defaultContent,
 }: {
   dataset: {
     a: string;
     b: string;
     answer: string;
   }[];
+  defaultContent: ReactNode;
 }) => {
   const [state, dispatch] = useFormState(chatAction, {
     quizIndex: -1,
     messages: [],
+    showAnswer: false,
   });
-  const [scriptEnabled, setScriptEnabled] = useState(false);
-  useEffect(() => {
-    setScriptEnabled(true);
-  }, []);
+
   const [clearFormKey, setClearFormKey] = useState(0);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -60,6 +64,12 @@ export const Message = ({
     });
   };
 
+  useEffect(() => {
+    if (messageRef.current) {
+      messageRef.current.value = "";
+    }
+  }, [clearFormKey]);
+
   const formSchema = z.discriminatedUnion("type", [
     answerSchema,
     questionSchema,
@@ -68,7 +78,7 @@ export const Message = ({
     // lastResult,
     // shouldValidate: "onBlur",
     // shouldRevalidate: "onInput",
-    id: `${clearFormKey}`,
+    // id: `${clearFormKey}`,
     constraint: getZodConstraint(formSchema),
     onValidate: ({ formData }) => {
       const result = parseWithZod(formData, { schema: formSchema });
@@ -76,7 +86,12 @@ export const Message = ({
       return result;
     },
     onSubmit: handleSubmit,
+    defaultNoValidate: false,
+    defaultValue: {
+      message: "どんな画像ですか？",
+    },
   });
+  const messageRef = useRef<HTMLInputElement>(null);
 
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     state,
@@ -126,127 +141,118 @@ export const Message = ({
     })
   );
 
-  const images = dataset[state.quizIndex];
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
+  const scrollBottom = () => {
+    scrollBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollBottom();
+  }, [optimisticMessages.messages]);
+
+  const quizData = dataset[state.quizIndex];
+  const showDefaultContent = state.quizIndex < 0;
 
   return (
-    <section>
-      <div className="flex flex-col space-y-4">
-        <h2>問題を選択</h2>
-        <form action={dispatch} className="flex gap-2" id="questions-select">
-          <input type="hidden" name="type" value="change" />
-          <input type="hidden" name="message" value="" />
-          {dataset.map((_, index) => (
-            <button
-              key={index}
-              type="submit"
-              name="quizIndex"
-              value={index}
-              className="bg-blue-500 text-white py-2 px-4 rounded"
-            >
-              {index}
-            </button>
-          ))}
-        </form>
-      </div>
-      <section className="grow grid grid-cols-1 grid-rows-[minmax(0,1fr)_auto]">
-        {state.quizIndex >= 0 && (
-          <>
-            <section className="min-h-64 bg-white rounded-lg border-2">
+    <section className="grow flex flex-col">
+      <div className="grow w-full px-[5%] max-w-4xl mx-auto">
+        <div className="flex flex-wrap items-center gap-6 mb-8 rounded-2xl bg-white p-4">
+          <h2>問題を選択</h2>
+          <form action={dispatch} className="flex gap-2">
+            <input type="hidden" name="type" value="change" />
+            {dataset.map((_, index) => (
+              <button
+                key={index}
+                type="submit"
+                name="quizIndex"
+                value={index}
+                aria-current={state.quizIndex === index ? "true" : undefined}
+                className="bg-blue-500 text-white py-2 px-4 rounded aria-[current=true]:bg-blue-800"
+              >
+                {index + 1}
+              </button>
+            ))}
+          </form>
+        </div>
+
+        {showDefaultContent ? (
+          <div className="my-8">{defaultContent}</div>
+        ) : (
+          <section className="my-8 grow grid grid-cols-1 grid-rows-[minmax(0,1fr)_auto]">
+            <section className="min-h-64 bg-white rounded-2xl p-4">
               <div className="p-8">
                 <Visual />
               </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-6  p-4 border-gray-300">
-                {optimisticMessages.messages.map((message, index) =>
-                  message.type === "question" ? (
-                    <p
-                      key={index}
-                      className="px-4 py-2 rounded-3xl justify-self-end col-span-2 bg-slate-100"
-                    >
-                      Q. {message.content}
-                    </p>
-                  ) : message.type === "answer" ? (
-                    <p
-                      key={index}
-                      className="px-4 py-2 rounded-3xl justify-self-end  col-span-2 bg-slate-100"
-                    >
-                      A. {message.content}
-                    </p>
-                  ) : message.type === "result" ? (
-                    <p
-                      key={index}
-                      className="px-4 py-2 rounded-3xl justify-self-start col-span-2 bg-slate-100"
-                    >
-                      {message.content}
-                    </p>
-                  ) : (
-                    <p
-                      key={index}
-                      className={`px-4 py-2 rounded-3xl self-start ${
-                        message.type === "a" ? "bg-red-100" : "bg-blue-100"
-                      }`}
-                    >
-                      {message.content}
-                    </p>
-                  )
-                )}
-              </div>
 
-              <details>
-                <summary className="bg-slate-500 text-white px-4 py-2 rounded-lg">
-                  答えを表示
-                </summary>
-                <div className="p-4">
-                  <Visual imageUrlA={images.a} imageUrlB={images.b} />
-                </div>
-              </details>
-            </section>
+              <ChatLog messages={optimisticMessages.messages} />
 
-            <section className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
-              {/* 質問・解答フォーム */}
-              <form
-                action={dispatch}
-                {...getFormProps(form)}
-                noValidate={scriptEnabled}
-              >
-                <input type="hidden" name="quizIndex" value={state.quizIndex} />
-
-                <div className="flex">
-                  <label
-                    className="grow flex items-center sr-only"
-                    htmlFor={fields.message.id}
-                  >
-                    送信する内容
-                  </label>
-                  <input
-                    className="border-2 grow border-gray-300 bg-white h-10 px-5 rounded-lg"
-                    {...getInputProps(fields.message, { type: "text" })}
-                  />
-
-                  <button
-                    type="submit"
-                    name="type"
-                    value="question"
-                    className="font-bold bg-slate-500 text-white px-4 py-2 rounded-lg ml-2"
-                  >
-                    質問する
-                  </button>
-                  <button
-                    type="submit"
-                    name="type"
-                    value="answer"
-                    className=" font-bold  bg-white text-slate-500 border-2 border-slate-500 px-4 py-2 rounded-lg ml-2"
-                  >
-                    解答する
-                  </button>
-                </div>
-                <p id={fields.message.errorId} className="text-red-500">
-                  {fields.message.errors}
+              {optimisticMessages.messages.length === 0 ? (
+                <p className="text-gray-700 text-center py-8">
+                  なにか質問してみましょう
                 </p>
-              </form>
+              ) : state.showAnswer ? (
+                <div className="px-8 mt-8">
+                  <Visual imageUrlA={quizData.a} imageUrlB={quizData.b} />
+                  <p className="text-gray-700 text-center py-8">
+                    想定解答： {quizData.answer}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-gray-700 text-sm text-center mt-16 py-4">
+                  あきらめて答えを見るときは、「降参」と入力して解答を送信します。
+                </p>
+              )}
+              <div ref={scrollBottomRef} />
             </section>
-          </>
+          </section>
         )}
-      </section>
+      </div>
+
+      {!showDefaultContent && (
+        <section className="p-4 grid grid-cols-1 gap-4 sticky bottom-0 bg-white">
+          {/* 質問・解答フォーム */}
+          <form
+            action={dispatch}
+            className="w-full max-w-4xl mx-auto"
+            {...getFormProps(form)}
+          >
+            <input type="hidden" name="quizIndex" value={state.quizIndex} />
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <label className="sr-only" htmlFor={fields.message.id}>
+                送信する内容
+              </label>
+              <input
+                className="border-2 grow-[9999] border-gray-300 bg-white h-10 px-5 rounded-lg"
+                ref={messageRef}
+                {...getInputProps(fields.message, { type: "text" })}
+              />
+
+              <div className="flex gap-2 grow justify-end">
+                <button
+                  type="submit"
+                  name="type"
+                  value="question"
+                  className="font-bold bg-slate-500 text-white px-4 py-2 rounded-lg"
+                >
+                  質問する
+                </button>
+                <button
+                  type="submit"
+                  name="type"
+                  value="answer"
+                  className=" font-bold  bg-white text-slate-500 border-2 border-slate-500 px-4 py-2 rounded-lg"
+                >
+                  解答する
+                </button>
+              </div>
+            </div>
+            <p id={fields.message.errorId} className="text-red-500">
+              {fields.message.errors}
+            </p>
+          </form>
+        </section>
+      )}
     </section>
   );
 };

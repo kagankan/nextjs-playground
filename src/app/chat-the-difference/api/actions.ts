@@ -3,6 +3,7 @@
 import OpenAI from "openai";
 import { dataset } from "./dataset";
 import { requestSchema } from "./schema";
+import { stat } from "fs";
 
 type State = {
   quizIndex: number;
@@ -11,6 +12,7 @@ type State = {
     type: "question" | "a" | "b" | "answer" | "result";
     content: string;
   }[];
+  showAnswer: boolean;
   errors?: Record<string, string[] | undefined>;
 };
 
@@ -33,6 +35,7 @@ export async function chatAction(
     return {
       quizIndex: state.quizIndex,
       messages: state.messages,
+      showAnswer: state.showAnswer,
       errors: validatedData.error.flatten().fieldErrors,
     };
   }
@@ -41,6 +44,30 @@ export async function chatAction(
     return {
       quizIndex: validatedData.data.quizIndex,
       messages: [],
+      showAnswer: false,
+    };
+  }
+
+  if (
+    validatedData.data.type === "answer" &&
+    validatedData.data.message === "降参"
+  ) {
+    return {
+      quizIndex: state.quizIndex,
+      messages: [
+        ...state.messages,
+        {
+          id: crypto.randomUUID(),
+          type: "answer",
+          content: validatedData.data.message,
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "result",
+          content: `正解は「${dataset[state.quizIndex].answer}」でした。`,
+        },
+      ],
+      showAnswer: true,
     };
   }
 
@@ -169,6 +196,7 @@ export async function chatAction(
           content: response == null ? "エラー" : response,
         },
       ],
+      showAnswer: response === "正解です！",
     };
   }
 
@@ -197,5 +225,6 @@ export async function chatAction(
         content: responseB == null ? "エラー" : responseB,
       },
     ],
+    showAnswer: state.showAnswer,
   };
 }
