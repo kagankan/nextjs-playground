@@ -30,6 +30,7 @@ export const Message = ({
   defaultContent,
 }: {
   dataset: {
+    level: "easy" | "hard" | "impossible";
     a: string;
     b: string;
     answer: string;
@@ -67,6 +68,7 @@ export const Message = ({
   useEffect(() => {
     if (messageRef.current) {
       messageRef.current.value = "";
+      messageRef.current.focus();
     }
   }, [clearFormKey]);
 
@@ -156,22 +158,35 @@ export const Message = ({
   return (
     <section className="grow flex flex-col">
       <div className="grow w-full px-[5%] max-w-4xl mx-auto">
-        <div className="flex flex-wrap items-center gap-6 mb-8 rounded-2xl bg-white p-4">
-          <h2>問題を選択</h2>
-          <form action={dispatch} className="flex gap-2">
+        <div className="mb-8 rounded-2xl bg-white p-4">
+          <h2 className="text-xl font-bold mb-2">問題を選択</h2>
+          <form action={dispatch}>
             <input type="hidden" name="type" value="change" />
-            {dataset.map((_, index) => (
-              <button
-                key={index}
-                type="submit"
-                name="quizIndex"
-                value={index}
-                aria-current={state.quizIndex === index ? "true" : undefined}
-                className="bg-blue-500 text-white py-2 px-4 rounded aria-[current=true]:bg-blue-800"
-              >
-                {index + 1}
-              </button>
-            ))}
+
+            <div className="flex flex-col gap-2">
+              {["easy", "hard", "impossible"].map((level) => (
+                <div key={level} className="flex gap-2 flex-wrap">
+                  <p className="uppercase text-sm text-gray-700">{level}</p>
+                  {dataset.map(
+                    (data, index) =>
+                      data.level === level && (
+                        <button
+                          key={index}
+                          type="submit"
+                          name="quizIndex"
+                          value={index}
+                          aria-current={
+                            state.quizIndex === index ? "true" : undefined
+                          }
+                          className="bg-blue-500 text-white p-2 min-w-10 rounded aria-[current=true]:bg-blue-800"
+                        >
+                          {index + 1}
+                        </button>
+                      )
+                  )}
+                </div>
+              ))}
+            </div>
           </form>
         </div>
 

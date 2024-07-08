@@ -21,6 +21,7 @@ export const exampleData = {
 export const dataset = [
   // 簡単
   {
+    level: "easy",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/study_gogaku_man1_english.png"
     ),
@@ -30,6 +31,7 @@ export const dataset = [
     answer: "片方にだけ、本の表紙に「English」の文字が書かれている",
   },
   {
+    level: "easy",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/kuchi_taisou02.png"
     ),
@@ -39,11 +41,13 @@ export const dataset = [
     answer: "口の形が違う（表情が違う）",
   },
   {
+    level: "easy",
     a: getBase64Url("/src/app/chat-the-difference/api/_images/car_red.png"),
     b: getBase64Url("/src/app/chat-the-difference/api/_images/car_blue.png"),
     answer: "車の色が違う",
   },
   {
+    level: "easy",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/amount_water_glass2.png"
     ),
@@ -53,6 +57,7 @@ export const dataset = [
     answer: "入っている水の量が違う",
   },
   {
+    level: "easy",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/souji_table_fuku_girl.png"
     ),
@@ -62,6 +67,7 @@ export const dataset = [
     answer: "女の子が着ている服が違う",
   },
   {
+    level: "easy",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/toy_fukimodoshi_fue.png"
     ),
@@ -71,6 +77,7 @@ export const dataset = [
     answer: "吹き戻しの数が違う（一方は1本だけ、もう一方はたくさん）",
   },
   {
+    level: "easy",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/teisyoku_haizen.png"
     ),
@@ -81,6 +88,7 @@ export const dataset = [
   },
 
   {
+    level: "easy",
     a: getBase64Url("/src/app/chat-the-difference/api/_images/room_living.png"),
     b: getBase64Url(
       "/src/app/chat-the-difference/api/_images/room_living_b_easy.png"
@@ -89,6 +97,7 @@ export const dataset = [
   },
   // ここから難しい
   {
+    level: "hard",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/room_kodomobeya.png"
     ),
@@ -98,6 +107,7 @@ export const dataset = [
     answer: "机の上の本棚の右上の時計の有無",
   },
   {
+    level: "hard",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/mizu_junkan_a.png"
     ),
@@ -107,6 +117,7 @@ export const dataset = [
     answer: "太陽の大きさが違う",
   },
   {
+    level: "hard",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/teisyoku_haizen.png"
     ),
@@ -117,6 +128,7 @@ export const dataset = [
   },
 
   {
+    level: "hard",
     a: getBase64Url(
       "/src/app/chat-the-difference/api/_images/news_wideshow_smile.png"
     ),
@@ -126,7 +138,10 @@ export const dataset = [
     answer:
       "右側の若い男性の表情が違う（一方は笑顔で、もう一方は真面目な表情）",
   },
+
+  // 不可能
   {
+    level: "impossible",
     a: getBase64Url("/src/app/chat-the-difference/api/_images/room_living.png"),
     b: getBase64Url(
       "/src/app/chat-the-difference/api/_images/room_living_b_hard.png"
