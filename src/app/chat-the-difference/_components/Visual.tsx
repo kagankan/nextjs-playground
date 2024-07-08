@@ -24,15 +24,17 @@ export const Visual = ({
             />
           </div>
         ) : (
-          <div className=" text-6xl md:text-8xl bg-red-500 text-white grid place-items-center aspect-video">
-            ？
-          </div>
+          <>
+            <div className=" text-6xl md:text-8xl bg-red-500 text-white grid place-items-center aspect-video">
+              ？
+            </div>
+            <Image
+              src={aiImageLeft}
+              alt=""
+              className="absolute w-1/3 max-w-24 bottom-0 left-0"
+            />
+          </>
         )}
-        <Image
-          src={aiImageLeft}
-          alt=""
-          className="absolute w-1/3 max-w-24 bottom-0 left-0"
-        />
       </div>
       <div className="relative pb-[min(2rem,15%)] pr-[min(2rem,15%)]">
         {imageUrlB ? (
@@ -47,15 +49,17 @@ export const Visual = ({
             />
           </div>
         ) : (
-          <div className=" text-6xl md:text-8xl bg-blue-500 text-white grid place-items-center aspect-video">
-            ？
-          </div>
+          <>
+            <div className=" text-6xl md:text-8xl bg-blue-500 text-white grid place-items-center aspect-video">
+              ？
+            </div>
+            <Image
+              src={aiImageRight}
+              alt=""
+              className="absolute w-1/3 max-w-24 bottom-0 right-0"
+            />
+          </>
         )}
-        <Image
-          src={aiImageRight}
-          alt=""
-          className="absolute w-1/3 max-w-24 bottom-0 right-0"
-        />
       </div>
     </div>
   );
