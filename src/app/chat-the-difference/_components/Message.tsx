@@ -165,25 +165,29 @@ export const Message = ({
 
             <div className="flex flex-col gap-2">
               {["easy", "hard", "impossible"].map((level) => (
-                <div key={level} className="flex gap-2 flex-wrap">
-                  <p className="uppercase text-sm text-gray-700">{level}</p>
-                  {dataset.map(
-                    (data, index) =>
-                      data.level === level && (
-                        <button
-                          key={index}
-                          type="submit"
-                          name="quizIndex"
-                          value={index}
-                          aria-current={
-                            state.quizIndex === index ? "true" : undefined
-                          }
-                          className="bg-blue-500 text-white p-2 min-w-10 rounded aria-[current=true]:bg-blue-800"
-                        >
-                          {index + 1}
-                        </button>
-                      )
-                  )}
+                <div key={level}>
+                  <p className="mb-2 uppercase text-sm text-gray-700">
+                    {level}
+                  </p>
+                  <p className="flex gap-2 flex-wrap">
+                    {dataset.map(
+                      (data, index) =>
+                        data.level === level && (
+                          <button
+                            key={index}
+                            type="submit"
+                            name="quizIndex"
+                            value={index}
+                            aria-current={
+                              state.quizIndex === index ? "true" : undefined
+                            }
+                            className="bg-blue-500 text-white p-2 min-w-10 rounded aria-[current=true]:bg-blue-800"
+                          >
+                            {index + 1}
+                          </button>
+                        )
+                    )}
+                  </p>
                 </div>
               ))}
             </div>
