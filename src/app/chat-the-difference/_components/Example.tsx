@@ -1,6 +1,6 @@
 import { ChatLog } from "./ChatLog";
 import { Visual } from "./Visual";
-import { dataset } from "../api/dataset";
+import { exampleData } from "../api/dataset";
 
 export const Example = () => {
   return (
@@ -15,11 +15,12 @@ export const Example = () => {
           },
           {
             type: "a",
-            content: "赤いイラストです。",
+            content:
+              "赤い結晶のイラストです。地面から生えているように見えます。",
           },
           {
             type: "b",
-            content: "青いイラストです。",
+            content: "黄色い結晶が描かれたイラストです。地面から生えています。",
           },
           {
             type: "answer",
@@ -31,7 +32,7 @@ export const Example = () => {
           },
         ]}
       />
-      <Visual imageUrlA={dataset[0].a} imageUrlB={dataset[0].b} />
+      <Visual imageUrlA={exampleData.a} imageUrlB={exampleData.b} />
     </div>
   );
 };
