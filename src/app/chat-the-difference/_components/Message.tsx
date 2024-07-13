@@ -29,12 +29,12 @@ export const Message = ({
   dataset,
   defaultContent,
 }: {
-  dataset: {
+  dataset: readonly Readonly<{
     level: "easy" | "hard" | "impossible";
     a: string;
     b: string;
     answer: string;
-  }[];
+  }>[];
   defaultContent: ReactNode;
 }) => {
   const [state, dispatch] = useFormState(chatAction, {
