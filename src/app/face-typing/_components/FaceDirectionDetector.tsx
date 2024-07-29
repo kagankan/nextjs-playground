@@ -50,6 +50,7 @@ const FaceDirectionDetector: React.FC = () => {
           {
             runtime: "mediapipe",
             solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
+            // solutionPath: "node_modules/@mediapipe/face_mesh", // 失敗した
             refineLandmarks: true,
           };
         return faceLandmarksDetection.createDetector(model, detectorConfig);
