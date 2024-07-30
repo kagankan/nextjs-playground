@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { flushSync } from "react-dom";
 
 type Unit = [string, string] | string | null;
 type BinaryTree = [BinaryTree, BinaryTree] | Unit;
@@ -96,19 +97,13 @@ const variants: Record<string, BinaryTree> = {
   // よ: ["よ", "ょ"],
 };
 
-function escapeUnicode(str: string) {
-  return str.replace(/[\s\S]/g, function (c) {
-    return "char" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4);
-  });
-}
-
 export const BinaryKana = ({}: // onKanaChange,
 {
   // onKanaChange?: (kana: string) => void;
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [current, setCurrent] = useState<BinaryTree>(kana50on);
-
+  console.log("render");
   return (
     <div>
       <p className="text-[4vw] border rounded min-h-4 bg-white p-2 text-center">
@@ -177,7 +172,9 @@ export const BinaryKana = ({}: // onKanaChange,
                     setCurrent(next);
                   } else {
                     document.startViewTransition(() => {
-                      setCurrent(next);
+                      flushSync(() => {
+                        setCurrent(next);
+                      });
                     });
                   }
                 }
@@ -193,8 +190,9 @@ export const BinaryKana = ({}: // onKanaChange,
                       key={i}
                       className={`place-self-center text-[5vw] rounded bg-slate-100 border`}
                       style={{
-                        viewTransitionName: `${escapeUnicode(kana as string)}`,
-                        contain: "paint",
+                        viewTransitionName: `char-${(kana as string).charCodeAt(
+                          0
+                        )}`,
                       }}
                     >
                       {kana}
