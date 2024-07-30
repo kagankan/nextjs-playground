@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { flushSync } from "react-dom";
+import { set } from "zod";
 
 type Unit = [string, string] | string | null;
 type BinaryTree = [BinaryTree, BinaryTree] | Unit;
@@ -97,6 +98,11 @@ const variants: Record<string, BinaryTree> = {
   // よ: ["よ", "ょ"],
 };
 
+// const actions: BinaryTree = [
+//   ["もどる", "文字を消す"],
+//   ["はじめから", "おわり"],
+// ];
+
 export const BinaryKana = ({}: // onKanaChange,
 {
   // onKanaChange?: (kana: string) => void;
@@ -105,38 +111,19 @@ export const BinaryKana = ({}: // onKanaChange,
   const [current, setCurrent] = useState<BinaryTree>(kana50on);
   console.log("render");
   return (
-    <div>
+    <div className="grid grid-rows-[auto,1fr,auto] grow gap-4">
       <p className="text-[4vw] border rounded min-h-4 bg-white p-2 text-center">
         {history.length > 0 ? history.join("") : "_"}
       </p>
 
-      {/* <div className="flex items-center">
-        <button
-          onClick={() => {
-            setHistory([...history, 0]);
-            setCurrent(current[0]);
-          }}
-        >
-          右
-        </button>
-        <button
-          onClick={() => {
-            setHistory([...history, 1]);
-            setCurrent(current[1]);
-          }}
-        >
-          左
-        </button>
-      </div> */}
-
-      <div className="grid w-full grid-rows-2 [writing-mode:vertical-rl]">
+      <div className="grid w-full  grid-rows-2 [writing-mode:vertical-rl]">
         {current instanceof Array ? (
           current.map((rightOrLeft, i) => (
             <div
               key={i}
-              className={`grid  grid-cols-5 p-[2vw] gap-[1vw] ${
-                i === 0 ? "bg-red-300" : "bg-blue-300"
-              }`}
+              className={`grid  p-[2vw] gap-[1vw] ${
+                current.flat(9).length >= 5 ? "grid-cols-5" : "grid-cols-3"
+              } ${i === 0 ? "bg-red-300" : "bg-blue-300"}`}
               onClick={() => {
                 console.log("click", rightOrLeft);
                 if (rightOrLeft === null) {
@@ -204,6 +191,26 @@ export const BinaryKana = ({}: // onKanaChange,
         ) : (
           <div>Never reach here</div>
         )}
+      </div>
+
+      <div className="flex justify-center gap-2">
+        <button
+          onClick={() => {
+            setCurrent(kana50on);
+            setHistory([]);
+          }}
+          className="p-2 rounded border border-slate-700"
+        >
+          文字をすべて消す
+        </button>
+        <button
+          onClick={() => {
+            setCurrent(kana50on);
+          }}
+          className="p-2 rounded border border-slate-700"
+        >
+          文字を選びなおす
+        </button>
       </div>
     </div>
   );
