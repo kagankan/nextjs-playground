@@ -111,7 +111,12 @@ export const BinaryKana = ({}: // onKanaChange,
   const [current, setCurrent] = useState<BinaryTree>(kana50on);
   console.log("render");
   return (
-    <div className="grid grid-rows-[auto,1fr,auto] grow gap-4">
+    <div
+      className="grid grid-rows-[auto,1fr,auto] grow gap-4"
+      style={{
+        fontFamily: "UD デジタル 教科書体 N-B, UD デジタル 教科書体 N-R",
+      }}
+    >
       <p className="text-[4vw] border rounded min-h-4 bg-white p-2 text-center">
         {history.length > 0 ? history.join("") : "_"}
       </p>
@@ -175,7 +180,7 @@ export const BinaryKana = ({}: // onKanaChange,
                   ) : (
                     <div
                       key={i}
-                      className={`place-self-center text-[5vw] rounded bg-slate-100 border`}
+                      className={`place-self-center [writing-mode:horizontal-tb] leading-none pt-[0.5vw] px-[1vw] text-[5vw] rounded bg-slate-100 border`}
                       style={{
                         viewTransitionName: `char-${(kana as string).charCodeAt(
                           0
