@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
+import { z } from "zod";
 
 interface Keypoint {
   x: number;
@@ -87,18 +88,28 @@ const FaceDirectionDetector: React.FC = () => {
     const eyesMidpoint = {
       x: (leftEye.x + rightEye.x) / 2,
       y: (leftEye.y + rightEye.y) / 2,
+      z: (leftEye.z! + rightEye.z!) / 2,
     };
+    console.log(eyesMidpoint);
 
     const angleRad = Math.atan2(
       nose.y - eyesMidpoint.y,
       nose.x - eyesMidpoint.x
     );
-    let angleDeg = angleRad * (180 / Math.PI);
+    let angleHorizontalDeg = angleRad * (180 / Math.PI);
 
-    if (angleDeg < -180) angleDeg += 360;
-    if (angleDeg > 180) angleDeg -= 360;
+    if (angleHorizontalDeg < -180) angleHorizontalDeg += 360;
+    if (angleHorizontalDeg > 180) angleHorizontalDeg -= 360;
 
-    return { angleDeg, leftEye, rightEye, nose };
+    // Calculate pitch (up-down rotation)
+    const pitchRad = Math.atan2(
+      nose.y - eyesMidpoint.y,
+      nose.z! - eyesMidpoint.z
+    );
+    const pitch = pitchRad * (180 / Math.PI);
+    console.log(pitch);
+
+    return { angleDeg: angleHorizontalDeg, leftEye, rightEye, nose };
   };
 
   const getFaceDirection = useCallback(
