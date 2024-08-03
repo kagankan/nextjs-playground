@@ -113,6 +113,7 @@ export const FlickKana = ({}: // onKanaChange,
                 onClick={() => {
                   speak(phrase);
                   setTypedText((prev) => prev + phrase);
+                  setSelectedColumn(null);
                   handleTimer();
                 }}
               >
