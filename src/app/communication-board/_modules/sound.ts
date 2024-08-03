@@ -3,9 +3,9 @@ export const sound = () => {
 
   const gainNode = audioCtx.createGain();
   // gainNode.connect(audioCtx.destination);
-  gainNode.gain.value = 0.1; // 音量
+  gainNode.gain.value = 0.2; // 音量
   const nodes = [audioCtx.createOscillator(), audioCtx.createOscillator()];
-  const hz = 1700;
+  const hz = 500;
   nodes.map((node) => {
     node.type = "sine";
     node.frequency.setValueAtTime(hz, audioCtx.currentTime);
