@@ -163,14 +163,17 @@ export const FlickKana = ({}: // onKanaChange,
                       if (kana in actions) {
                         actions[kana as keyof typeof actions]();
                       } else {
-                        setTypedText((prev) => {
-                          if (kana === "゛" || kana === "゜" || kana === "小") {
-                            const lastChar = prev.slice(-1);
-                            const variant = getVariant(lastChar, kana);
-                            return prev.slice(0, -1) + variant;
-                          }
-                          return prev + kana;
-                        });
+                        let newTypedText;
+                        if (kana === "゛" || kana === "゜" || kana === "小") {
+                          const lastChar = typedText.slice(-1);
+                          const variant = getVariant(lastChar, kana);
+                          speak(variant);
+                          newTypedText = typedText.slice(0, -1) + variant;
+                        } else {
+                          speak(kana);
+                          newTypedText = typedText + kana;
+                        }
+                        setTypedText(newTypedText);
                       }
                       setSelectedColumn(null);
                       handleTimer();
