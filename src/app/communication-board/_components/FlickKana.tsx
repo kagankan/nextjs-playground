@@ -6,6 +6,7 @@ import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
 import { phrases } from "../_modules/phrases";
+import { HoverClickButton } from "./HoverClickButton";
 
 const kana50on = [
   ["あ", "い", "う", "え", "お"],
@@ -41,7 +42,7 @@ export const FlickKana = ({}: // onKanaChange,
     setIsDisabled(true);
     const newTimer = setTimeout(() => {
       setIsDisabled(false);
-    }, 1000);
+    }, 500);
     setTimer(newTimer);
   }, [timer]);
 
@@ -66,51 +67,53 @@ export const FlickKana = ({}: // onKanaChange,
         disabled={isDisabled}
       >
         {selectedColumn == null ? (
-          <button
-            onClick={() => {
+          <HoverClickButton
+            onHoverClick={() => {
               setTypedText((prev) => prev.slice(0, -1));
               handleTimer();
             }}
-            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]   border-8 border-white hover:border-orange-500"
+            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
           >
             ◀️ 消す
-          </button>
+          </HoverClickButton>
         ) : (
-          <button
-            onClick={() => {
+          <HoverClickButton
+            onHoverClick={() => {
               setSelectedColumn(null);
               handleTimer();
             }}
-            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]   border-8 border-white hover:border-orange-500"
+            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
           >
             🔙 戻る
-          </button>
+          </HoverClickButton>
         )}
         <p className="text-[4vw] border rounded min-h-4 bg-white p-2 text-center">
           {typedText.length > 0 ? typedText : "_"}
         </p>
-        <button
-          onClick={() => {
+        <HoverClickButton
+          onHoverClick={() => {
             speak(typedText);
             handleTimer();
           }}
-          className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw]   border-8 border-white hover:border-orange-500"
+          className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw]"
         >
           🎵 再生
-        </button>
+        </HoverClickButton>
       </fieldset>
 
       <fieldset
-        className={`grid w-full ${selectedColumn == null ? "grid-cols-4" : ""}`}
+        className={`grid w-full ${
+          selectedColumn == null ? "grid-cols-4 gap-2" : ""
+        }`}
         disabled={isDisabled}
       >
         {selectedColumn === 10 ? (
-          <div className="grid grid-cols-4 border auto-rows-fr">
+          <div className="grid grid-cols-4 border auto-rows-fr gap-2">
             {phrases.map((phrase, i) => (
-              <button
+              <HoverClickButton
                 key={i}
-                className="grid place-items-center border-8 border-white hover:border-orange-500 bg-slate-100 rounded text-[4vw] font-bold leading-none h-full"
-                onClick={() => {
+                className="grid place-items-center border bg-slate-100 rounded text-[4vw] font-bold leading-none h-full"
+                onHoverClick={() => {
                   speak(phrase);
                   setTypedText((prev) => prev + phrase);
                   setSelectedColumn(null);
@@ -118,99 +121,112 @@ export const FlickKana = ({}: // onKanaChange,
                 }}
               >
                 {phrase}
-              </button>
+              </HoverClickButton>
             ))}
           </div>
+        ) : selectedColumn == null ? (
+          kana50on.map((column, columnIndex) => (
+            <HoverClickButton
+              key={columnIndex}
+              onHoverClick={() => {
+                document.startViewTransition(() => {
+                  flushSync(() => {
+                    setSelectedColumn(columnIndex);
+                  });
+                });
+                handleTimer();
+              }}
+            >
+              <KanaColumn
+                column={column}
+                isColumnSelected={selectedColumn != null}
+                layoutFull={columnIndex > 9}
+              />
+            </HoverClickButton>
+          ))
         ) : (
-          (selectedColumn == null ? kana50on : [kana50on[selectedColumn]]).map(
-            (column, columnIndex) => (
-              <button
-                key={columnIndex}
-                className={`grid grid-cols-3 grid-rows-3 ${
-                  selectedColumn == null
-                    ? "cursor-pointer  border-8 border-white hover:border-orange-500"
-                    : ""
-                }`}
-                onClick={() => {
-                  if (selectedColumn == null) {
-                    document.startViewTransition(() => {
-                      flushSync(() => {
-                        setSelectedColumn(columnIndex);
-                      });
-                    });
-                    handleTimer();
-                  }
-                }}
-              >
-                {column.map((kana, i) =>
-                  kana == null ? (
-                    <div key={i} />
-                  ) : (
-                    <div
-                      key={i}
-                      className={`
-                    ${
-                      columnIndex > 9
-                        ? "row-span-3 col-span-3"
-                        : i === 0
-                        ? "row-start-2 col-start-2"
-                        : ""
-                    }
-                    ${i === 1 ? "row-start-2 col-start-1" : ""}
-                    ${i === 2 ? "row-start-1 col-start-2" : ""}
-                    ${i === 3 ? "row-start-2 col-start-3" : ""}
-                    ${i === 4 ? "row-start-3 col-start-2" : ""}
-                    ${
-                      selectedColumn == null
-                        ? i !== 0
-                          ? "text-[4vw] font-normal"
-                          : "text-[6vw] font-bold"
-                        : "text-[10vw] font-bold"
-                    }
-                    ${
-                      selectedColumn == null
-                        ? ""
-                        : "cursor-pointer  border-8 border-white hover:border-orange-500"
-                    }
-                    grid place-items-center
-                    leading-none h-full px-[1vw] rounded bg-slate-100 border`}
-                      style={{
-                        viewTransitionName: `char-${(kana as string).charCodeAt(
-                          0
-                        )}`,
-                      }}
-                      onClick={() => {
-                        if (selectedColumn == null) {
-                          return;
-                        }
-                        if (kana in actions) {
-                          actions[kana as keyof typeof actions]();
-                        } else {
-                          let newTypedText;
-                          if (kana === "゛" || kana === "゜" || kana === "小") {
-                            const lastChar = typedText.slice(-1);
-                            const variant = getVariant(lastChar, kana);
-                            speak(variant);
-                            newTypedText = typedText.slice(0, -1) + variant;
-                          } else {
-                            speak(kana);
-                            newTypedText = typedText + kana;
-                          }
-                          setTypedText(newTypedText);
-                        }
-                        setSelectedColumn(null);
-                        handleTimer();
-                      }}
-                    >
-                      {kana}
-                    </div>
-                  )
-                )}
-              </button>
-            )
-          )
+          <KanaColumn
+            column={kana50on[selectedColumn]}
+            isColumnSelected={selectedColumn != null}
+            onClick={(kana) => {
+              if (kana in actions) {
+                actions[kana as keyof typeof actions]();
+              } else {
+                let newTypedText;
+                if (kana === "゛" || kana === "゜" || kana === "小") {
+                  const lastChar = typedText.slice(-1);
+                  const variant = getVariant(lastChar, kana);
+                  speak(variant);
+                  newTypedText = typedText.slice(0, -1) + variant;
+                } else {
+                  speak(kana);
+                  newTypedText = typedText + kana;
+                }
+                setTypedText(newTypedText);
+              }
+              setSelectedColumn(null);
+              handleTimer();
+            }}
+          />
         )}
       </fieldset>
     </div>
+  );
+};
+
+/** 行（あ行なら、あいうえお） */
+const KanaColumn = ({
+  column,
+  isColumnSelected,
+  layoutFull = false,
+  onClick,
+}: {
+  column: (string | null)[];
+  isColumnSelected: boolean;
+  layoutFull?: boolean;
+  onClick?: (kana: string) => void;
+}) => {
+  const Component = onClick ? HoverClickButton : "span";
+  return (
+    <span className="grid grid-cols-3 grid-rows-3 h-full">
+      {column.map((kana, i) =>
+        kana == null ? (
+          <span key={i} />
+        ) : (
+          <Component
+            key={i}
+            className={`
+      ${
+        layoutFull
+          ? "row-span-3 col-span-3"
+          : i === 0
+          ? "row-start-2 col-start-2"
+          : ""
+      }
+      ${i === 1 ? "row-start-2 col-start-1" : ""}
+      ${i === 2 ? "row-start-1 col-start-2" : ""}
+      ${i === 3 ? "row-start-2 col-start-3" : ""}
+      ${i === 4 ? "row-start-3 col-start-2" : ""}
+      ${
+        !isColumnSelected
+          ? i !== 0
+            ? "text-[4vw] font-normal"
+            : "text-[6vw] font-bold"
+          : "text-[10vw] font-bold"
+      }
+      grid place-items-center
+      leading-none h-full px-[1vw] rounded bg-slate-100 border`}
+            style={{
+              viewTransitionName: `char-${(kana as string).charCodeAt(0)}`,
+            }}
+            onHoverClick={() => {
+              onClick?.(kana);
+            }}
+          >
+            {kana}
+          </Component>
+        )
+      )}
+    </span>
   );
 };
