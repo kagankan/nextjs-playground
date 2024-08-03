@@ -2,3 +2,5 @@ env:
   - variable: OPENAI_API_KEY
     # memo: `firebase apphosting:secrets:grantaccess OPENAI_API_KEY --project <project> --backend <backend>` をしておく必要がある
     secret: OPENAI_API_KEY
+  - variable: APP_HOSTING_BUILD
+    value: "true"
