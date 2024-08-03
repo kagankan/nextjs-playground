@@ -243,7 +243,7 @@ const KanaColumn = ({
               onClick?.(kana);
             }}
             onHoverStart={() => {
-              speak(kana, {
+              speak(kana === "ー" ? "のばしぼう" : kana, {
                 rate: 2,
                 pitch: 0.1,
               });
