@@ -1,15 +1,19 @@
-import { Ref, RefObject, useEffect, useState } from "react";
+import { Ref, RefObject, useCallback, useEffect, useState } from "react";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
 
 export const useDetector = (videoRef: RefObject<HTMLVideoElement>) => {
   const [detector, setDetector] =
     useState<faceLandmarksDetection.FaceLandmarksDetector | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     const setupCamera = async (): Promise<HTMLVideoElement> => {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      setStream(mediaStream);
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        videoRef.current.srcObject = mediaStream;
       }
       return new Promise((resolve) => {
         if (videoRef.current) {
@@ -45,7 +49,18 @@ export const useDetector = (videoRef: RefObject<HTMLVideoElement>) => {
 
     init();
   }, [videoRef]);
-  console.log(videoRef.current);
-  console.log(detector);
-  return detector;
+
+  const pause = useCallback(() => {
+    stream?.getTracks().forEach((track) => {
+      track.enabled = false;
+    });
+  }, [stream]);
+
+  const resume = useCallback(() => {
+    stream?.getTracks().forEach((track) => {
+      track.enabled = true;
+    });
+  }, [stream]);
+
+  return { detector, pause, resume };
 };

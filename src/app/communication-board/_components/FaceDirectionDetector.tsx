@@ -24,7 +24,7 @@ const FaceDirectionDetector: React.FC = () => {
   const [faceData, setFaceData] = useState<string>(
     "Face data will appear here"
   );
-  const detector = useDetector(videoRef);
+  const { detector, pause, resume } = useDetector(videoRef);
   const [currentAngle, setCurrentAngle] = useState<number | null>(null);
   const [leftCalibration, setLeftCalibration] = useState<number>(90 - 30);
   const [rightCalibration, setRightCalibration] = useState<number>(90 + 30);
@@ -185,6 +185,9 @@ const FaceDirectionDetector: React.FC = () => {
       <button onClick={() => setRightCalibration(currentAngle || 0)}>
         Calibrate Right
       </button>
+
+      <button onClick={pause}>Pause</button>
+      <button onClick={resume}>Resume</button>
       <div
         style={{ width: "100%", height: "20px", backgroundColor: "lightgray" }}
       >
