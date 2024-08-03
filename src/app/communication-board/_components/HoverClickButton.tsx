@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, use, useEffect, useRef, useState } from "react";
 import { sound } from "../_modules/sound";
 
 const HOVER_THRESHOLD = 500;
@@ -20,30 +20,41 @@ export const HoverClickButton = ({
   children: ReactNode;
   disableDefaultClick?: boolean;
 } & JSX.IntrinsicElements["button"]) => {
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
-  // const hoverTimerRef = useRef<number | null>(null);
+  const comeBackTimerRef = useRef<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
 
+  const rectRef = useRef<SVGRectElement | null>(null);
+
+  // 親の再描画によって変化する可能性があるのでイベントごとにチェックする
+  const checkDisabled = () => buttonRef.current?.matches(":disabled");
   const handleHoverStart = () => {
-    console.log("hover start");
+    if (checkDisabled()) {
+      return;
+    }
     setIsHovered(true);
     onHoverStart?.();
     // hoverTimerRef.current = window.setTimeout(() => {
     //   onHoverClick();
     // }, HOVER_THRESHOLD);
+    if (comeBackTimerRef.current) {
+      clearTimeout(comeBackTimerRef.current);
+    }
   };
 
   const handleHoverEnd = () => {
-    console.log("hover end");
-    setIsHovered(false);
+    // setIsHovered(false);
     // if (hoverTimerRef.current) {
     //   clearTimeout(hoverTimerRef.current);
     // }
+
+    // 一瞬だけ外れて戻ってきたら継続するようにする
+    comeBackTimerRef.current = window.setTimeout(() => {
+      setIsHovered(false);
+    }, 100);
   };
-
-  const [isAnimating, setIsAnimating] = useState(false);
-  const timeoutRef = useRef<number | null>(null);
-
-  const rectRef = useRef<SVGRectElement | null>(null);
 
   useEffect(() => {
     if (isHovered) {
@@ -95,6 +106,7 @@ export const HoverClickButton = ({
   return (
     <button
       type="button"
+      ref={buttonRef}
       onMouseEnter={handleHoverStart}
       onMouseLeave={handleHoverEnd}
       onClick={disableDefaultClick ? undefined : onHoverClick}

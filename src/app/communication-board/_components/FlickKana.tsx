@@ -1,7 +1,7 @@
 "use client";
 
 import "../_styles/style.css";
-import { useCallback, useState } from "react";
+import { FC, ReactElement, useCallback, useState } from "react";
 import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
@@ -29,9 +29,9 @@ export const FlickKana = ({}: // onKanaChange,
 }) => {
   const [typedText, setTypedText] = useState<string>("");
   const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
-  const [isTextPlaying, setIsTextPlaying] = useState<boolean>(false);
+  const [paused, setPaused] = useState<boolean>(false);
 
-  // 一度入力したら一定秒数ボタンを無効にする
+  // 一度入力したら一定秒数ボタンを無効にする→HoverClickButtonのenterが必要なのでいらなそう
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -42,7 +42,7 @@ export const FlickKana = ({}: // onKanaChange,
     setIsDisabled(true);
     const newTimer = setTimeout(() => {
       setIsDisabled(false);
-    }, 500);
+    }, 0);
     setTimer(newTimer);
   }, [timer]);
 
@@ -76,6 +76,7 @@ export const FlickKana = ({}: // onKanaChange,
               speak("消す", { rate: 2, pitch: 0.1 });
             }}
             className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
+            disabled={paused}
           >
             ◀️ 消す
           </HoverClickButton>
@@ -89,28 +90,37 @@ export const FlickKana = ({}: // onKanaChange,
               speak("もどる", { rate: 2, pitch: 0.1 });
             }}
             className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
+            disabled={paused}
           >
             🔙 戻る
           </HoverClickButton>
         )}
-        <p className="text-[4vw] border rounded min-h-4 bg-white p-2 text-center">
-          {typedText.length > 0 ? typedText : "_"}
-        </p>
         <HoverClickButton
           onHoverClick={() => {
-            setIsTextPlaying(true);
             speak(typedText, {
               volume: 1.5,
               forcePlay: true,
             });
             handleTimer();
           }}
+          className="text-[4vw] border rounded min-h-4 bg-white py-2 px-4 text-start"
+          disabled={paused}
+        >
+          {typedText.length > 0 ? typedText : "_"}
+        </HoverClickButton>
+
+        <HoverClickButton
+          onHoverClick={() => {
+            paused ? speak("再開") : speak("一時停止");
+            setPaused((prev) => !prev);
+            handleTimer();
+          }}
           onHoverStart={() => {
-            speak("再生", { rate: 2, pitch: 0.1 });
+            speak(paused ? "再開" : "一時停止", { rate: 2, pitch: 0.1 });
           }}
           className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw]"
         >
-          🎵 再生
+          {paused ? "▶️ 再開" : "⏸️ 一時停止"}
         </HoverClickButton>
       </fieldset>
 
@@ -118,7 +128,7 @@ export const FlickKana = ({}: // onKanaChange,
         className={`grid w-full ${
           selectedColumn == null ? "grid-cols-4 gap-2" : ""
         }`}
-        disabled={isDisabled}
+        disabled={isDisabled || paused}
       >
         {selectedColumn === 10 ? (
           <div className="grid grid-cols-4 border auto-rows-fr gap-2">
@@ -242,12 +252,16 @@ const KanaColumn = ({
             onHoverClick={() => {
               onClick?.(kana);
             }}
-            onHoverStart={() => {
-              speak(kana === "ー" ? "のばしぼう" : kana, {
-                rate: 2,
-                pitch: 0.1,
-              });
-            }}
+            onHoverStart={
+              Component === HoverClickButton
+                ? () => {
+                    speak(kana === "ー" ? "のばしぼう" : kana, {
+                      rate: 2,
+                      pitch: 0.1,
+                    });
+                  }
+                : undefined
+            }
           >
             {kana}
           </Component>
