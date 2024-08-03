@@ -71,7 +71,7 @@ export const FlickKana = ({}: // onKanaChange,
               setTypedText((prev) => prev.slice(0, -1));
               handleTimer();
             }}
-            className="px-6 min-w-[15vw] rounded border bg-slate-100 text-[3vw]"
+            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]   border-8 border-white hover:border-orange-500"
           >
             ◀️ 消す
           </button>
@@ -81,7 +81,7 @@ export const FlickKana = ({}: // onKanaChange,
               setSelectedColumn(null);
               handleTimer();
             }}
-            className="px-6 min-w-[15vw] rounded border bg-slate-100 text-[3vw]"
+            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]   border-8 border-white hover:border-orange-500"
           >
             🔙 戻る
           </button>
@@ -94,7 +94,7 @@ export const FlickKana = ({}: // onKanaChange,
             speak(typedText);
             handleTimer();
           }}
-          className="px-6 min-w-[15vw] rounded border bg-slate-100 text-[3vw]"
+          className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw]   border-8 border-white hover:border-orange-500"
         >
           🎵 再生
         </button>
@@ -109,7 +109,7 @@ export const FlickKana = ({}: // onKanaChange,
             {phrases.map((phrase, i) => (
               <button
                 key={i}
-                className="grid place-items-center border bg-slate-100 rounded text-[4vw] font-bold leading-none h-full"
+                className="grid place-items-center border-8 border-white hover:border-orange-500 bg-slate-100 rounded text-[4vw] font-bold leading-none h-full"
                 onClick={() => {
                   speak(phrase);
                   setTypedText((prev) => prev + phrase);
@@ -125,8 +125,10 @@ export const FlickKana = ({}: // onKanaChange,
             (column, columnIndex) => (
               <button
                 key={columnIndex}
-                className={`grid grid-cols-3 grid-rows-3 border ${
-                  selectedColumn == null ? "cursor-pointer" : ""
+                className={`grid grid-cols-3 grid-rows-3 ${
+                  selectedColumn == null
+                    ? "cursor-pointer  border-8 border-white hover:border-orange-500"
+                    : ""
                 }`}
                 onClick={() => {
                   if (selectedColumn == null) {
@@ -164,7 +166,11 @@ export const FlickKana = ({}: // onKanaChange,
                           : "text-[6vw] font-bold"
                         : "text-[10vw] font-bold"
                     }
-                    ${selectedColumn == null ? "" : "cursor-pointer"}
+                    ${
+                      selectedColumn == null
+                        ? ""
+                        : "cursor-pointer  border-8 border-white hover:border-orange-500"
+                    }
                     grid place-items-center
                     leading-none h-full px-[1vw] rounded bg-slate-100 border`}
                       style={{
