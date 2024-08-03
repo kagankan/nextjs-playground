@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 // import { z } from "zod";
 import { useDetector } from "../_hooks/useFaceDirection";
 import { useRenderPrediction } from "../_hooks/useRenderPrediction";
+import { speak } from "../_modules/speech";
 
 interface Keypoint {
   x: number;
@@ -62,7 +63,6 @@ const FaceDirectionDetector: React.FC = () => {
       y: (leftEye.y + rightEye.y) / 2,
       z: (leftEye.z! + rightEye.z!) / 2,
     };
-    console.log(eyesMidpoint);
 
     const angleRad = Math.atan2(
       nose.y - eyesMidpoint.y,
@@ -79,7 +79,6 @@ const FaceDirectionDetector: React.FC = () => {
       nose.z! - eyesMidpoint.z
     );
     const pitch = pitchRad * (180 / Math.PI);
-    console.log(pitch);
 
     return { angleDeg: angleHorizontalDeg, leftEye, rightEye, nose };
   };
@@ -130,6 +129,8 @@ const FaceDirectionDetector: React.FC = () => {
       <button onClick={() => setRightCalibration(currentAngle || 0)}>
         Calibrate Right
       </button>
+
+      <button onClick={() => speak("こんにちは")}>はなす</button>
 
       <button onClick={pause}>Pause</button>
       <button onClick={resume}>Resume</button>
