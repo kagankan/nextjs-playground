@@ -7,6 +7,12 @@ import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
 import { phrases } from "../_modules/phrases";
 import { HoverClickButton } from "./HoverClickButton";
+import { useAtom } from "jotai";
+import {
+  attentionDurationAtom,
+  enableAttentionAtom,
+  enableClickAtom,
+} from "../_modules/config";
 
 const kana50on = [
   ["あ", "い", "う", "え", "お"],
@@ -34,6 +40,12 @@ export const FlickKana = ({}: // onKanaChange,
   // 一度入力したら一定秒数ボタンを無効にする→HoverClickButtonのenterが必要なのでいらなそう
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const [attentionDuration, setAttentionDuration] = useAtom(
+    attentionDurationAtom
+  );
+  const [enableAttention, setEnableAttention] = useAtom(enableAttentionAtom);
+  const [enableClick, setEnableClick] = useAtom(enableClickAtom);
 
   const handleTimer = useCallback(() => {
     if (timer) {
@@ -200,6 +212,57 @@ export const FlickKana = ({}: // onKanaChange,
           />
         )}
       </fieldset>
+
+      <dialog
+        open
+        id="settings"
+        // className=" backdrop:bg-black backdrop:bg-opacity-50"
+      >
+        <div className="border p-8 grid gap-4 text-xl w-[80vw] max-w-xl">
+          <h2 className="text-2xl">設定</h2>
+          <div>
+            <label>
+              注視の長さ
+              <input
+                type="range"
+                className="w-full"
+                value={attentionDuration}
+                onChange={(e) => {
+                  setAttentionDuration(Number(e.target.value));
+                }}
+                min={0}
+                max={3000}
+                step={100}
+              />
+            </label>
+            <output>{attentionDuration}ミリ秒</output>
+          </div>
+          <label>
+            <input
+              type="checkbox"
+              checked={enableClick}
+              onChange={(e) => setEnableClick(e.target.checked)}
+            />
+            クリックを有効化
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={enableAttention}
+              onChange={(e) => setEnableAttention(e.target.checked)}
+            />
+            注視を有効化
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              document.querySelector<HTMLDialogElement>("#settings")?.close();
+            }}
+          >
+            閉じる
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 };

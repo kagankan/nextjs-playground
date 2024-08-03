@@ -1,8 +1,13 @@
-import { ReactNode, use, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { sound } from "../_modules/sound";
+import { useAtom } from "jotai";
+import {
+  attentionDurationAtom,
+  enableAttentionAtom,
+  enableClickAtom,
+} from "../_modules/config";
 
 const HOVER_THRESHOLD = 500;
-const ANIMATION_DURATION = 1000;
 
 /**
  * 一定時間ホバーすることでクリックイベントを発火するボタン
@@ -12,19 +17,21 @@ export const HoverClickButton = ({
   onHoverClick,
   onHoverStart,
   children,
-  disableDefaultClick = false,
   ...props
 }: {
   onHoverClick: () => void;
   onHoverStart?: () => void;
   children: ReactNode;
-  disableDefaultClick?: boolean;
 } & JSX.IntrinsicElements["button"]) => {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const comeBackTimerRef = useRef<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const timeoutRef = useRef<number | null>(null);
+  const [attentionDuration] = useAtom(attentionDurationAtom);
+
+  const [enableAttention, setEnableAttention] = useAtom(enableAttentionAtom);
+  const [enableClick, setEnableClick] = useAtom(enableClickAtom);
 
   const rectRef = useRef<SVGRectElement | null>(null);
 
@@ -82,10 +89,10 @@ export const HoverClickButton = ({
         sound();
         setIsAnimating(false);
         setIsHovered(false);
-      }, ANIMATION_DURATION);
+      }, attentionDuration);
       return () => clearTimeout(timer);
     }
-  }, [isAnimating, onHoverClick]);
+  }, [attentionDuration, isAnimating, onHoverClick]);
 
   // アニメーション
   // SVGのパスの長さを取得する必要があるためJSで実行
@@ -95,21 +102,21 @@ export const HoverClickButton = ({
     }
     const length = rectRef.current.getTotalLength();
     if (isAnimating) {
-      rectRef.current.style.transition = `stroke-dasharray ${ANIMATION_DURATION}ms linear`;
+      rectRef.current.style.transition = `stroke-dasharray ${attentionDuration}ms linear`;
       rectRef.current.style.strokeDasharray = `${length} ${length}`;
     } else {
       rectRef.current.style.transition = "";
       rectRef.current.style.strokeDasharray = `0 ${length}`;
     }
-  }, [isAnimating]);
+  }, [attentionDuration, isAnimating]);
 
   return (
     <button
       type="button"
       ref={buttonRef}
-      onMouseEnter={handleHoverStart}
-      onMouseLeave={handleHoverEnd}
-      onClick={disableDefaultClick ? undefined : onHoverClick}
+      onMouseEnter={enableAttention ? handleHoverStart : undefined}
+      onMouseLeave={enableAttention ? handleHoverEnd : undefined}
+      onClick={enableClick ? onHoverClick : undefined}
       {...props}
       style={{
         position: "relative",
