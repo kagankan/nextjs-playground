@@ -6,7 +6,7 @@ import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
 
-const kana50on: (string | null)[][] = [
+const kana50on = [
   ["あ", "い", "う", "え", "お"],
   ["か", "き", "く", "け", "こ"],
   ["さ", "し", "す", "せ", "そ"],
@@ -20,8 +20,8 @@ const kana50on: (string | null)[][] = [
   ["小", "゛", null, "゜"],
   // TODO:
   // ["定型文"],
-  // ["最初から"],
-];
+  ["全消し"],
+] as const satisfies (string | null)[][];
 
 export const FlickKana = ({}: // onKanaChange,
 {
@@ -45,6 +45,15 @@ export const FlickKana = ({}: // onKanaChange,
     }, 500);
     setTimer(newTimer);
   }, [timer]);
+
+  const actions = {
+    全消し: () => {
+      setTypedText("");
+      handleTimer();
+    },
+  } satisfies Partial<
+    Record<NonNullable<(typeof kana50on)[number][number]>, () => void>
+  >;
 
   return (
     <div
@@ -97,9 +106,9 @@ export const FlickKana = ({}: // onKanaChange,
         disabled={isDisabled}
       >
         {(selectedColumn == null ? kana50on : [kana50on[selectedColumn]]).map(
-          (column, i) => (
+          (column, columnIndex) => (
             <button
-              key={i}
+              key={columnIndex}
               className={`grid grid-cols-3 grid-rows-3 border ${
                 selectedColumn == null ? "cursor-pointer" : ""
               }`}
@@ -107,7 +116,7 @@ export const FlickKana = ({}: // onKanaChange,
                 if (selectedColumn == null) {
                   document.startViewTransition(() => {
                     flushSync(() => {
-                      setSelectedColumn(i);
+                      setSelectedColumn(columnIndex);
                     });
                   });
                   handleTimer();
@@ -121,7 +130,13 @@ export const FlickKana = ({}: // onKanaChange,
                   <div
                     key={i}
                     className={`
-                    ${i === 0 ? "row-start-2 col-start-2" : ""}
+                    ${
+                      columnIndex > 10
+                        ? "row-span-3 col-span-3"
+                        : i === 0
+                        ? "row-start-2 col-start-2"
+                        : ""
+                    }
                     ${i === 1 ? "row-start-2 col-start-1" : ""}
                     ${i === 2 ? "row-start-1 col-start-2" : ""}
                     ${i === 3 ? "row-start-2 col-start-3" : ""}
@@ -145,15 +160,18 @@ export const FlickKana = ({}: // onKanaChange,
                       if (selectedColumn == null) {
                         return;
                       }
-                      setTypedText((prev) => {
-                        if (kana === "゛" || kana === "゜" || kana === "小") {
-                          const lastChar = prev.slice(-1);
-                          const variant = getVariant(lastChar, kana);
-                          return prev.slice(0, -1) + variant;
-                        }
-                        return prev + kana;
-                      });
-
+                      if (kana in actions) {
+                        actions[kana as keyof typeof actions]();
+                      } else {
+                        setTypedText((prev) => {
+                          if (kana === "゛" || kana === "゜" || kana === "小") {
+                            const lastChar = prev.slice(-1);
+                            const variant = getVariant(lastChar, kana);
+                            return prev.slice(0, -1) + variant;
+                          }
+                          return prev + kana;
+                        });
+                      }
                       setSelectedColumn(null);
                       handleTimer();
                     }}
