@@ -29,7 +29,7 @@ export const FlickKana = ({}: // onKanaChange,
 }) => {
   const [typedText, setTypedText] = useState<string>("");
   const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
-  console.log(selectedColumn);
+  const [isTextPlaying, setIsTextPlaying] = useState<boolean>(false);
 
   // 一度入力したら一定秒数ボタンを無効にする
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
@@ -72,6 +72,9 @@ export const FlickKana = ({}: // onKanaChange,
               setTypedText((prev) => prev.slice(0, -1));
               handleTimer();
             }}
+            onHoverStart={() => {
+              speak("消す", { rate: 2, pitch: 0.1 });
+            }}
             className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
           >
             ◀️ 消す
@@ -81,6 +84,9 @@ export const FlickKana = ({}: // onKanaChange,
             onHoverClick={() => {
               setSelectedColumn(null);
               handleTimer();
+            }}
+            onHoverStart={() => {
+              speak("もどる", { rate: 2, pitch: 0.1 });
             }}
             className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
           >
@@ -92,8 +98,15 @@ export const FlickKana = ({}: // onKanaChange,
         </p>
         <HoverClickButton
           onHoverClick={() => {
-            speak(typedText);
+            setIsTextPlaying(true);
+            speak(typedText, {
+              volume: 1.5,
+              forcePlay: true,
+            });
             handleTimer();
+          }}
+          onHoverStart={() => {
+            speak("再生", { rate: 2, pitch: 0.1 });
           }}
           className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw]"
         >
@@ -136,6 +149,12 @@ export const FlickKana = ({}: // onKanaChange,
                 });
                 handleTimer();
               }}
+              onHoverStart={() => {
+                speak(columnIndex < 10 ? `${column[0]!}ぎょう` : column[0], {
+                  rate: 2,
+                  pitch: 0.1,
+                });
+              }}
             >
               <KanaColumn
                 column={column}
@@ -164,6 +183,7 @@ export const FlickKana = ({}: // onKanaChange,
                 }
                 setTypedText(newTypedText);
               }
+
               setSelectedColumn(null);
               handleTimer();
             }}
@@ -221,6 +241,12 @@ const KanaColumn = ({
             }}
             onHoverClick={() => {
               onClick?.(kana);
+            }}
+            onHoverStart={() => {
+              speak(kana, {
+                rate: 2,
+                pitch: 0.1,
+              });
             }}
           >
             {kana}

@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { sound } from "../_modules/sound";
 
 const HOVER_THRESHOLD = 500;
 const ANIMATION_DURATION = 1000;
@@ -9,11 +10,13 @@ const ANIMATION_DURATION = 1000;
  */
 export const HoverClickButton = ({
   onHoverClick,
+  onHoverStart,
   children,
   disableDefaultClick = false,
   ...props
 }: {
   onHoverClick: () => void;
+  onHoverStart?: () => void;
   children: ReactNode;
   disableDefaultClick?: boolean;
 } & JSX.IntrinsicElements["button"]) => {
@@ -23,6 +26,7 @@ export const HoverClickButton = ({
   const handleHoverStart = () => {
     console.log("hover start");
     setIsHovered(true);
+    onHoverStart?.();
     // hoverTimerRef.current = window.setTimeout(() => {
     //   onHoverClick();
     // }, HOVER_THRESHOLD);
@@ -64,6 +68,7 @@ export const HoverClickButton = ({
     if (isAnimating) {
       const timer = setTimeout(() => {
         onHoverClick();
+        sound();
         setIsAnimating(false);
         setIsHovered(false);
       }, ANIMATION_DURATION);
