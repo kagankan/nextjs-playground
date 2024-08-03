@@ -1,4 +1,4 @@
-import { Ref, RefObject, useCallback, useEffect, useState } from "react";
+import { RefObject, useCallback, useEffect, useState } from "react";
 import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
 
 export const useDetector = (videoRef: RefObject<HTMLVideoElement>) => {

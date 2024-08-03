@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 // import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
 // import { z } from "zod";
 import { useDetector } from "../_hooks/useFaceDirection";
+import { useRenderPrediction } from "../_hooks/useRenderPrediction";
 
 interface Keypoint {
   x: number;
@@ -21,9 +22,7 @@ interface FaceAngleData {
 const FaceDirectionDetector: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [faceData, setFaceData] = useState<string>(
-    "Face data will appear here"
-  );
+  const [faceData, setFaceData] = useState<string>("No data");
   const { detector, pause, resume } = useDetector(videoRef);
   const [currentAngle, setCurrentAngle] = useState<number | null>(null);
   const [leftCalibration, setLeftCalibration] = useState<number>(90 - 30);
@@ -31,21 +30,32 @@ const FaceDirectionDetector: React.FC = () => {
 
   // useCamera(videoRef.current);
 
-  const drawPoint = (
-    ctx: CanvasRenderingContext2D,
-    y: number,
-    x: number,
-    r: number
-  ): void => {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, 2 * Math.PI);
-    ctx.fill();
-  };
+  useRenderPrediction(detector, videoRef, canvasRef, (keypoints) => {
+    // setKeyPoints(keypoints);
+    if (keypoints == null) {
+      setFaceData("No face detected");
+      return;
+    } else if (keypoints.length === 0) {
+      setFaceData("No face detected");
+      return;
+    }
+    const { angleDeg: faceAngle } = calculateFaceAngle(keypoints ?? []);
+    setCurrentAngle(faceAngle);
+    const faceDirection = getFaceDirection(faceAngle);
+
+    setFaceData(
+      `Face Angle: ${faceAngle.toFixed(0)}°, Direction: ${faceDirection}`
+    );
+  });
+
+  const INDEX_LEFT_EYE = 33;
+  const INDEX_RIGHT_EYE = 263;
+  const INDEX_NOSE = 1;
 
   const calculateFaceAngle = (keypoints: Keypoint[]): FaceAngleData => {
-    const leftEye = keypoints[33];
-    const rightEye = keypoints[263];
-    const nose = keypoints[1];
+    const leftEye = keypoints[INDEX_LEFT_EYE];
+    const rightEye = keypoints[INDEX_RIGHT_EYE];
+    const nose = keypoints[INDEX_NOSE];
 
     const eyesMidpoint = {
       x: (leftEye.x + rightEye.x) / 2,
@@ -87,71 +97,6 @@ const FaceDirectionDetector: React.FC = () => {
     },
     [leftCalibration, rightCalibration]
   );
-
-  const renderPrediction = useCallback(async (): Promise<void> => {
-    if (!canvasRef.current || !videoRef.current || !detector) return;
-
-    const ctx = canvasRef.current.getContext("2d");
-    if (!ctx) return;
-
-    const predictions = await detector.estimateFaces(videoRef.current, {
-      flipHorizontal: false,
-      // predictIrises: true,
-    });
-
-    ctx.drawImage(
-      videoRef.current,
-      0,
-      0,
-      videoRef.current.width,
-      videoRef.current.height
-    );
-
-    if (predictions.length > 0) {
-      predictions.forEach((prediction) => {
-        const keypoints = prediction.keypoints;
-
-        for (let i = 0; i < keypoints.length; i++) {
-          const x = keypoints[i].x;
-          const y = keypoints[i].y;
-
-          ctx.fillStyle = "white";
-          ctx.strokeStyle = "black";
-          ctx.lineWidth = 1;
-          drawPoint(ctx, y, x, 2);
-        }
-
-        const {
-          angleDeg: faceAngle,
-          leftEye,
-          rightEye,
-          nose,
-        } = calculateFaceAngle(keypoints);
-        setCurrentAngle(faceAngle);
-
-        ctx.fillStyle = "red";
-        drawPoint(ctx, leftEye.y, leftEye.x, 4);
-        drawPoint(ctx, rightEye.y, rightEye.x, 4);
-        drawPoint(ctx, nose.y, nose.x, 4);
-
-        const faceDirection = getFaceDirection(faceAngle);
-
-        setFaceData(
-          `Face Angle: ${faceAngle.toFixed(0)}°, Direction: ${faceDirection}`
-        );
-      });
-    } else {
-      setFaceData("No face detected");
-    }
-
-    requestAnimationFrame(renderPrediction);
-  }, [detector, getFaceDirection]);
-
-  useEffect(() => {
-    if (detector) {
-      renderPrediction();
-    }
-  }, [detector, renderPrediction]);
 
   return (
     <div>
