@@ -197,12 +197,11 @@ export const FlickKana = ({}: // onKanaChange,
                 if (kana === "゛" || kana === "゜" || kana === "小") {
                   const lastChar = typedText.slice(-1);
                   const variant = getVariant(lastChar, kana);
-                  speak(variant);
                   newTypedText = typedText.slice(0, -1) + variant;
                 } else {
-                  speak(kana);
                   newTypedText = typedText + kana;
                 }
+                speak(newTypedText);
                 setTypedText(newTypedText);
               }
 
