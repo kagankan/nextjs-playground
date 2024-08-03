@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
+import { phrases } from "../_modules/phrases";
 
 const kana50on = [
   ["あ", "い", "う", "え", "お"],
@@ -14,12 +15,10 @@ const kana50on = [
   ["な", "に", "ぬ", "ね", "の"],
   ["は", "ひ", "ふ", "へ", "ほ"],
   ["ま", "み", "む", "め", "も"],
-  ["や", null, "ゆ", null, "よ"],
+  ["や", "゛", "ゆ", "゜", "よ"],
   ["ら", "り", "る", "れ", "ろ"],
-  ["わ", "を", "ん", "ー"],
-  ["小", "゛", null, "゜"],
-  // TODO:
-  // ["定型文"],
+  ["わ", "を", "ん", "ー", "小"],
+  ["定型文"],
   ["全消し"],
 ] as const satisfies (string | null)[][];
 
@@ -105,33 +104,50 @@ export const FlickKana = ({}: // onKanaChange,
         className={`grid w-full ${selectedColumn == null ? "grid-cols-4" : ""}`}
         disabled={isDisabled}
       >
-        {(selectedColumn == null ? kana50on : [kana50on[selectedColumn]]).map(
-          (column, columnIndex) => (
-            <button
-              key={columnIndex}
-              className={`grid grid-cols-3 grid-rows-3 border ${
-                selectedColumn == null ? "cursor-pointer" : ""
-              }`}
-              onClick={() => {
-                if (selectedColumn == null) {
-                  document.startViewTransition(() => {
-                    flushSync(() => {
-                      setSelectedColumn(columnIndex);
-                    });
-                  });
+        {selectedColumn === 10 ? (
+          <div className="grid grid-cols-4 border auto-rows-fr">
+            {phrases.map((phrase, i) => (
+              <button
+                key={i}
+                className="grid place-items-center border bg-slate-100 rounded text-[4vw] font-bold leading-none h-full"
+                onClick={() => {
+                  speak(phrase);
+                  setTypedText((prev) => prev + phrase);
                   handleTimer();
-                }
-              }}
-            >
-              {column.map((kana, i) =>
-                kana == null ? (
-                  <div key={i} />
-                ) : (
-                  <div
-                    key={i}
-                    className={`
+                }}
+              >
+                {phrase}
+              </button>
+            ))}
+          </div>
+        ) : (
+          (selectedColumn == null ? kana50on : [kana50on[selectedColumn]]).map(
+            (column, columnIndex) => (
+              <button
+                key={columnIndex}
+                className={`grid grid-cols-3 grid-rows-3 border ${
+                  selectedColumn == null ? "cursor-pointer" : ""
+                }`}
+                onClick={() => {
+                  if (selectedColumn == null) {
+                    document.startViewTransition(() => {
+                      flushSync(() => {
+                        setSelectedColumn(columnIndex);
+                      });
+                    });
+                    handleTimer();
+                  }
+                }}
+              >
+                {column.map((kana, i) =>
+                  kana == null ? (
+                    <div key={i} />
+                  ) : (
+                    <div
+                      key={i}
+                      className={`
                     ${
-                      columnIndex > 10
+                      columnIndex > 9
                         ? "row-span-3 col-span-3"
                         : i === 0
                         ? "row-start-2 col-start-2"
@@ -151,39 +167,40 @@ export const FlickKana = ({}: // onKanaChange,
                     ${selectedColumn == null ? "" : "cursor-pointer"}
                     grid place-items-center
                     leading-none h-full px-[1vw] rounded bg-slate-100 border`}
-                    style={{
-                      viewTransitionName: `char-${(kana as string).charCodeAt(
-                        0
-                      )}`,
-                    }}
-                    onClick={() => {
-                      if (selectedColumn == null) {
-                        return;
-                      }
-                      if (kana in actions) {
-                        actions[kana as keyof typeof actions]();
-                      } else {
-                        let newTypedText;
-                        if (kana === "゛" || kana === "゜" || kana === "小") {
-                          const lastChar = typedText.slice(-1);
-                          const variant = getVariant(lastChar, kana);
-                          speak(variant);
-                          newTypedText = typedText.slice(0, -1) + variant;
-                        } else {
-                          speak(kana);
-                          newTypedText = typedText + kana;
+                      style={{
+                        viewTransitionName: `char-${(kana as string).charCodeAt(
+                          0
+                        )}`,
+                      }}
+                      onClick={() => {
+                        if (selectedColumn == null) {
+                          return;
                         }
-                        setTypedText(newTypedText);
-                      }
-                      setSelectedColumn(null);
-                      handleTimer();
-                    }}
-                  >
-                    {kana}
-                  </div>
-                )
-              )}
-            </button>
+                        if (kana in actions) {
+                          actions[kana as keyof typeof actions]();
+                        } else {
+                          let newTypedText;
+                          if (kana === "゛" || kana === "゜" || kana === "小") {
+                            const lastChar = typedText.slice(-1);
+                            const variant = getVariant(lastChar, kana);
+                            speak(variant);
+                            newTypedText = typedText.slice(0, -1) + variant;
+                          } else {
+                            speak(kana);
+                            newTypedText = typedText + kana;
+                          }
+                          setTypedText(newTypedText);
+                        }
+                        setSelectedColumn(null);
+                        handleTimer();
+                      }}
+                    >
+                      {kana}
+                    </div>
+                  )
+                )}
+              </button>
+            )
           )
         )}
       </fieldset>
