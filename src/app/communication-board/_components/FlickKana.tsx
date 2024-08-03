@@ -1,7 +1,7 @@
 "use client";
 
 import "../_styles/style.css";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
@@ -30,6 +30,22 @@ export const FlickKana = ({}: // onKanaChange,
   const [typedText, setTypedText] = useState<string>("");
   const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
   console.log(selectedColumn);
+
+  // 一度入力したら一定秒数ボタンを無効にする
+  const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const handleTimer = useCallback(() => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    setIsDisabled(true);
+    const newTimer = setTimeout(() => {
+      setIsDisabled(false);
+    }, 500);
+    setTimer(newTimer);
+  }, [timer]);
+
   return (
     <div
       className="grid grid-rows-[auto,1fr] grow gap-4 font-bold"
@@ -37,11 +53,15 @@ export const FlickKana = ({}: // onKanaChange,
         fontFamily: "UD Digital",
       }}
     >
-      <div className="grid grid-cols-[auto_1fr_auto] min-h-[10vh]">
+      <fieldset
+        className="grid grid-cols-[auto_1fr_auto] min-h-[10vh]"
+        disabled={isDisabled}
+      >
         {selectedColumn == null ? (
           <button
             onClick={() => {
               setTypedText((prev) => prev.slice(0, -1));
+              handleTimer();
             }}
             className="px-6 min-w-[15vw] rounded border bg-slate-100 text-[3vw]"
           >
@@ -51,6 +71,7 @@ export const FlickKana = ({}: // onKanaChange,
           <button
             onClick={() => {
               setSelectedColumn(null);
+              handleTimer();
             }}
             className="px-6 min-w-[15vw] rounded border bg-slate-100 text-[3vw]"
           >
@@ -63,15 +84,17 @@ export const FlickKana = ({}: // onKanaChange,
         <button
           onClick={() => {
             speak(typedText);
+            handleTimer();
           }}
           className="px-6 min-w-[15vw] rounded border bg-slate-100 text-[3vw]"
         >
           🎵 再生
         </button>
-      </div>
+      </fieldset>
 
-      <div
+      <fieldset
         className={`grid w-full ${selectedColumn == null ? "grid-cols-4" : ""}`}
+        disabled={isDisabled}
       >
         {(selectedColumn == null ? kana50on : [kana50on[selectedColumn]]).map(
           (column, i) => (
@@ -87,6 +110,7 @@ export const FlickKana = ({}: // onKanaChange,
                       setSelectedColumn(i);
                     });
                   });
+                  handleTimer();
                 }
               }}
             >
@@ -131,6 +155,7 @@ export const FlickKana = ({}: // onKanaChange,
                       });
 
                       setSelectedColumn(null);
+                      handleTimer();
                     }}
                   >
                     {kana}
@@ -140,7 +165,7 @@ export const FlickKana = ({}: // onKanaChange,
             </button>
           )
         )}
-      </div>
+      </fieldset>
     </div>
   );
 };
