@@ -60,6 +60,7 @@ export const FlickKana = ({}: // onKanaChange,
 
   const actions = {
     全消し: () => {
+      speak("全消ししました");
       setTypedText("");
       handleTimer();
     },
@@ -81,6 +82,7 @@ export const FlickKana = ({}: // onKanaChange,
         {selectedColumn == null ? (
           <HoverClickButton
             onHoverClick={() => {
+              speak("１文字消しました");
               setTypedText((prev) => prev.slice(0, -1));
               handleTimer();
             }}
@@ -95,6 +97,7 @@ export const FlickKana = ({}: // onKanaChange,
         ) : (
           <HoverClickButton
             onHoverClick={() => {
+              speak("もどりました");
               setSelectedColumn(null);
               handleTimer();
             }}
@@ -123,14 +126,14 @@ export const FlickKana = ({}: // onKanaChange,
 
         <HoverClickButton
           onHoverClick={() => {
-            paused ? speak("再開") : speak("一時停止");
+            paused ? speak("再開しました") : speak("一時停止しました");
             setPaused((prev) => !prev);
             handleTimer();
           }}
           onHoverStart={() => {
             speak(paused ? "再開" : "一時停止", { rate: 2, pitch: 0.1 });
           }}
-          className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw]"
+          className="px-6 min-w-[15vw] rounded  bg-slate-100 text-[3vw] z-10"
         >
           {paused ? "▶️ 再開" : "⏸️ 一時停止"}
         </HoverClickButton>
@@ -211,6 +214,12 @@ export const FlickKana = ({}: // onKanaChange,
           />
         )}
       </fieldset>
+
+      {paused && (
+        <div className="absolute inset-0 grid place-items-center bg-black bg-opacity-50">
+          <p className="text-4xl text-white bg-black p-4">一時停止中</p>
+        </div>
+      )}
 
       <dialog
         open
