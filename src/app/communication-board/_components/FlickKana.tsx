@@ -41,7 +41,7 @@ export const FlickKana = ({}: // onKanaChange,
     setIsDisabled(true);
     const newTimer = setTimeout(() => {
       setIsDisabled(false);
-    }, 500);
+    }, 1000);
     setTimer(newTimer);
   }, [timer]);
 
