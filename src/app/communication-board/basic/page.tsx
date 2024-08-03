@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { Kana } from "../_components/Kana";
+import { FlickKana } from "../_components/FlickKana";
 
 export const metadata: Metadata = {
   title: "コミュニケーションボード",
@@ -7,13 +8,9 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main
-      className="font-bold"
-      style={{
-        fontFamily: "UD デジタル 教科書体 N-B",
-      }}
-    >
-      <Kana />
+    <main className="h-screen  flex flex-col">
+      {/* <Kana /> */}
+      <FlickKana />
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
+import { getVariant } from "../_modules/kana";
 
 const kana50on: string[][] = [
   ["あ", "い", "う", "え", "お"],
@@ -16,45 +17,6 @@ const kana50on: string[][] = [
   ["ら", "り", "る", "れ", "ろ"],
   ["わ", "を", "ん", "ー", "小"],
 ];
-
-const variants: Record<string, Record<string, string>> = {
-  // 必要性少なそう
-  // あ: ["あ", "ぁ"],
-  // い: ["い", "ぃ"],
-  // う: ["う", "ぅ"],
-  // え: ["え", "ぇ"],
-  // お: ["お", "ぉ"],
-  か: { "゛": "が" },
-  き: { "゛": "ぎ" },
-  く: { "゛": "ぐ" },
-  け: { "゛": "げ" },
-  こ: { "゛": "ご" },
-  さ: { "゛": "ざ" },
-  し: { "゛": "じ" },
-  す: { "゛": "ず" },
-  せ: { "゛": "ぜ" },
-  そ: { "゛": "ぞ" },
-  た: { "゛": "だ" },
-  ち: { "゛": "ぢ" },
-  つ: { "゛": "づ", 小: "っ" },
-  て: { "゛": "で" },
-  と: { "゛": "ど" },
-  は: { "゛": "ば", "゜": "ぱ" },
-  ひ: { "゛": "び", "゜": "ぴ" },
-  ふ: { "゛": "ぶ", "゜": "ぷ" },
-  へ: { "゛": "べ", "゜": "ぺ" },
-  ほ: { "゛": "ぼ", "゜": "ぽ" },
-  や: { 小: "ゃ" },
-  ゆ: { 小: "ゅ" },
-  よ: { 小: "ょ" },
-};
-
-const getVariant = (kana: string, decorator: "゛" | "゜" | "小"): string => {
-  if (variants[kana] && variants[kana][decorator]) {
-    return variants[kana][decorator];
-  }
-  return `${kana}${decorator}`;
-};
 
 export const Kana = ({}: // onKanaChange,
 {

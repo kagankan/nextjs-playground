@@ -1,0 +1,13 @@
+@font-face {
+  font-family: "UD Digital";
+  src: local("UD デジタル 教科書体 N-B");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "UD Digital";
+  src: local("UD デジタル 教科書体 N-R");
+  font-weight: normal;
+  font-style: normal;
+}
