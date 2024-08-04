@@ -1,7 +1,7 @@
 "use client";
 
 import "../_styles/style.css";
-import { FC, ReactElement, useCallback, useState } from "react";
+import { FC, ReactElement, useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
 import { getVariant } from "../_modules/kana";
@@ -231,7 +231,7 @@ export const TableKana = ({}: // onKanaChange,
       </fieldset>
 
       {paused && (
-        <div className="absolute inset-0 grid place-items-center bg-black bg-opacity-50">
+        <div className="fixed inset-0  grid place-items-center bg-black bg-opacity-50">
           <p className="text-4xl text-white bg-black p-4">一時停止中</p>
         </div>
       )}
@@ -239,7 +239,7 @@ export const TableKana = ({}: // onKanaChange,
       <dialog
         open
         id="settings"
-        className="z-20 absolute inset-0"
+        className="z-20 fixed inset-0"
         // className=" backdrop:bg-black backdrop:bg-opacity-50"
       >
         <div className="border p-8 grid gap-4 text-xl w-[80vw] max-w-xl">
