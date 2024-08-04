@@ -62,12 +62,12 @@ export const TableKana = ({}: // onKanaChange,
 
   const actions = {
     全消し: () => {
-      speak("全消ししました");
+      speak("全消ししました", { forcePlay: true });
       setTypedText("");
       handleTimer();
     },
     定型文: () => {
-      speak("定型文パネル");
+      speak("定型文パネル", { forcePlay: true });
       setIsSelectingPhrases(true);
       handleTimer();
     },
@@ -90,7 +90,7 @@ export const TableKana = ({}: // onKanaChange,
           {isSelectingPhrases ? (
             <HoverClickButton
               onHoverClick={() => {
-                speak("50音にもどりました");
+                speak("50音にもどりました", { forcePlay: true });
                 setIsSelectingPhrases(false);
                 handleTimer();
               }}
@@ -105,7 +105,7 @@ export const TableKana = ({}: // onKanaChange,
           ) : (
             <HoverClickButton
               onHoverClick={() => {
-                speak("１文字消しました");
+                speak("１文字消しました", { forcePlay: true });
                 setTypedText((prev) => prev.slice(0, -1));
                 handleTimer();
               }}
@@ -135,7 +135,9 @@ export const TableKana = ({}: // onKanaChange,
 
           <HoverClickButton
             onHoverClick={() => {
-              paused ? speak("再開しました") : speak("一時停止しました");
+              speak(paused ? "再開しました" : "一時停止しました", {
+                forcePlay: true,
+              });
               setPaused((prev) => !prev);
               handleTimer();
             }}
@@ -167,7 +169,7 @@ export const TableKana = ({}: // onKanaChange,
             ))}
           </div>
         ) : (
-          <div className="grid w-full  [writing-mode:vertical-rl] grid-cols-5">
+          <div className="grid w-full px-[20vmin] pb-[20vmin] [writing-mode:vertical-rl] grid-cols-5">
             {kana50on.map((column, columnIndex) =>
               column.map((kana, i) =>
                 kana == null ? (
@@ -200,7 +202,7 @@ export const TableKana = ({}: // onKanaChange,
                         } else {
                           newTypedText = typedText + kana;
                         }
-                        speak(newTypedText);
+                        speak(newTypedText, { forcePlay: true });
                         setTypedText(newTypedText);
                       }
 
