@@ -38,3 +38,10 @@ export const getVariant = (
   }
   return `${kana}${decorator}`;
 };
+
+export const canBeDecorated = (
+  kana: string,
+  decorator: "゛" | "゜" | "小"
+): boolean => {
+  return !!variants[kana] && !!variants[kana][decorator];
+};

@@ -4,7 +4,7 @@ import "../_styles/style.css";
 import { FC, ReactElement, useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { speak } from "../_modules/speech";
-import { getVariant } from "../_modules/kana";
+import { canBeDecorated, getVariant } from "../_modules/kana";
 import { phrases } from "../_modules/phrases";
 import { HoverClickButton } from "./HoverClickButton";
 import { useAtom } from "jotai";
@@ -184,6 +184,7 @@ export const TableKana = ({}: // onKanaChange,
             ${"text-[15vmin] font-bold"}
             grid place-items-center   [writing-mode:horizontal-tb]
             min-w-[30vmin] min-h-[30vmin]
+            disabled:opacity-50
             leading-none h-full px-[1vw] rounded bg-slate-100 border`}
                     style={{
                       viewTransitionName: `char-${(kana as string).charCodeAt(
@@ -193,6 +194,10 @@ export const TableKana = ({}: // onKanaChange,
                       minWidth: `${letterSize}vmin`,
                       minHeight: `${letterSize}vmin`,
                     }}
+                    disabled={
+                      (kana === "小" || kana === "゛" || kana === "゜") &&
+                      !canBeDecorated(typedText.slice(-1), kana)
+                    }
                     onHoverClick={() => {
                       if (kana in actions) {
                         actions[kana as keyof typeof actions]();
