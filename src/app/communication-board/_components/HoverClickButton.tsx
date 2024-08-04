@@ -119,6 +119,7 @@ export const HoverClickButton = ({
       onClick={enableClick ? onHoverClick : undefined}
       {...props}
       style={{
+        ...props.style,
         position: "relative",
       }}
     >

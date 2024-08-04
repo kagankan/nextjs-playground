@@ -12,6 +12,7 @@ import {
   attentionDurationAtom,
   enableAttentionAtom,
   enableClickAtom,
+  letterSizeAtom,
 } from "../_modules/config";
 
 const kana50on = [
@@ -25,8 +26,7 @@ const kana50on = [
   ["や", "゛", "ゆ", "゜", "よ"],
   ["ら", "り", "る", "れ", "ろ"],
   ["わ", "を", "ん", "ー", "小"],
-  ["定型文"],
-  ["全消し"],
+  ["定型文", null, null, null, "全消し"],
 ] as const satisfies (string | null)[][];
 
 export const TableKana = ({}: // onKanaChange,
@@ -46,6 +46,9 @@ export const TableKana = ({}: // onKanaChange,
   const [enableAttention, setEnableAttention] = useAtom(enableAttentionAtom);
   const [enableClick, setEnableClick] = useAtom(enableClickAtom);
 
+  const [isSelectingPhrases, setIsSelectingPhrases] = useState(false);
+  const [letterSize, setLetterSize] = useAtom(letterSizeAtom);
+
   const handleTimer = useCallback(() => {
     if (timer) {
       clearTimeout(timer);
@@ -63,36 +66,58 @@ export const TableKana = ({}: // onKanaChange,
       setTypedText("");
       handleTimer();
     },
+    定型文: () => {
+      speak("定型文パネル");
+      setIsSelectingPhrases(true);
+      handleTimer();
+    },
   } satisfies Partial<
     Record<NonNullable<(typeof kana50on)[number][number]>, () => void>
   >;
 
   return (
     <div
-      className="grid grid-rows-[auto,1fr] grow gap-4 font-bold"
+      className="grow gap-4 font-bold w-fit"
       style={{
         fontFamily: "UD Digital",
       }}
     >
-      <div className=" sticky top-0 z-10 left-0">
+      <div className=" sticky top-0 z-10 left-0 bg-white w-dvw pb-4">
         <fieldset
           className="grid grid-cols-[auto_1fr_auto] min-h-[10vh]"
           disabled={isDisabled}
         >
-          <HoverClickButton
-            onHoverClick={() => {
-              speak("１文字消しました");
-              setTypedText((prev) => prev.slice(0, -1));
-              handleTimer();
-            }}
-            onHoverStart={() => {
-              speak("消す", { rate: 2, pitch: 0.1 });
-            }}
-            className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
-            disabled={paused}
-          >
-            ◀️ 消す
-          </HoverClickButton>
+          {isSelectingPhrases ? (
+            <HoverClickButton
+              onHoverClick={() => {
+                speak("50音にもどりました");
+                setIsSelectingPhrases(false);
+                handleTimer();
+              }}
+              onHoverStart={() => {
+                speak("もどる", { rate: 2, pitch: 0.1 });
+              }}
+              className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
+              disabled={paused}
+            >
+              🔙 戻る
+            </HoverClickButton>
+          ) : (
+            <HoverClickButton
+              onHoverClick={() => {
+                speak("１文字消しました");
+                setTypedText((prev) => prev.slice(0, -1));
+                handleTimer();
+              }}
+              onHoverStart={() => {
+                speak("消す", { rate: 2, pitch: 0.1 });
+              }}
+              className="px-6 min-w-[15vw] rounded bg-slate-100 text-[3vw]"
+              disabled={paused}
+            >
+              ◀️ 消す
+            </HoverClickButton>
+          )}
 
           <HoverClickButton
             onHoverClick={() => {
@@ -123,24 +148,17 @@ export const TableKana = ({}: // onKanaChange,
           </HoverClickButton>
         </fieldset>
       </div>
-      <fieldset
-        className={`grid w-full ${
-          // selectedColumn == null ? "grid-cols-4 gap-2" : ""
-          ""
-        }`}
-        disabled={isDisabled || paused}
-      >
-        {/* TODO: */}
-        {/* {selectedColumn === 10 ? (
-          <div className="grid grid-cols-4 border auto-rows-fr gap-2">
+      <fieldset className={`grid w-full `} disabled={isDisabled || paused}>
+        {isSelectingPhrases ? (
+          <div className="grid grid-cols-3 border auto-rows-fr gap-2">
             {phrases.map((phrase, i) => (
               <HoverClickButton
                 key={i}
-                className="grid place-items-center border bg-slate-100 rounded text-[4vw] font-bold leading-none h-full"
+                className="grid place-items-center border bg-slate-100 rounded text-[10vmin] p-[2vmin] font-bold leading-none h-full"
                 onHoverClick={() => {
                   speak(phrase);
                   setTypedText((prev) => prev + phrase);
-                  setSelectedColumn(null);
+                  setIsSelectingPhrases(false);
                   handleTimer();
                 }}
               >
@@ -148,64 +166,68 @@ export const TableKana = ({}: // onKanaChange,
               </HoverClickButton>
             ))}
           </div>
-        ) : selectedColumn == null ? ( */}
-        <div className="grid w-full  [writing-mode:vertical-rl] grid-cols-5">
-          {kana50on.map((column, columnIndex) =>
-            column.map((kana, i) =>
-              kana == null ? (
-                <span key={i} />
-              ) : (
-                <HoverClickButton
-                  key={i}
-                  className={`
-            ${"text-[6vw] font-bold"}
-            grid place-items-center
-            min-w-[25vmin] min-h-[25vmin]
+        ) : (
+          <div className="grid w-full  [writing-mode:vertical-rl] grid-cols-5">
+            {kana50on.map((column, columnIndex) =>
+              column.map((kana, i) =>
+                kana == null ? (
+                  <span key={i} />
+                ) : (
+                  <HoverClickButton
+                    key={i}
+                    className={`
+            ${"text-[15vmin] font-bold"}
+            grid place-items-center   [writing-mode:horizontal-tb]
+            min-w-[30vmin] min-h-[30vmin]
             leading-none h-full px-[1vw] rounded bg-slate-100 border`}
-                  style={{
-                    viewTransitionName: `char-${(kana as string).charCodeAt(
-                      0
-                    )}`,
-                  }}
-                  onHoverClick={() => {
-                    if (kana in actions) {
-                      actions[kana as keyof typeof actions]();
-                    } else {
-                      let newTypedText;
-                      if (kana === "゛" || kana === "゜" || kana === "小") {
-                        const lastChar = typedText.slice(-1);
-                        const variant = getVariant(lastChar, kana);
-                        newTypedText = typedText.slice(0, -1) + variant;
+                    style={{
+                      viewTransitionName: `char-${(kana as string).charCodeAt(
+                        0
+                      )}`,
+                      fontSize: `${letterSize / 2}vmin`,
+                      minWidth: `${letterSize}vmin`,
+                      minHeight: `${letterSize}vmin`,
+                    }}
+                    onHoverClick={() => {
+                      if (kana in actions) {
+                        actions[kana as keyof typeof actions]();
                       } else {
-                        newTypedText = typedText + kana;
+                        let newTypedText;
+                        if (kana === "゛" || kana === "゜" || kana === "小") {
+                          const lastChar = typedText.slice(-1);
+                          const variant = getVariant(lastChar, kana);
+                          newTypedText = typedText.slice(0, -1) + variant;
+                        } else {
+                          newTypedText = typedText + kana;
+                        }
+                        speak(newTypedText);
+                        setTypedText(newTypedText);
                       }
-                      speak(newTypedText);
-                      setTypedText(newTypedText);
-                    }
 
-                    // setSelectedColumn(null);
-                    handleTimer();
-                  }}
-                  onHoverStart={() => {
-                    speak(
-                      kana === "ー"
-                        ? "のばしぼう"
-                        : kana === "小"
-                        ? "こもじ"
-                        : kana,
-                      {
-                        rate: 2,
-                        pitch: 0.1,
-                      }
-                    );
-                  }}
-                >
-                  {kana}
-                </HoverClickButton>
+                      // setSelectedColumn(null);
+                      handleTimer();
+                    }}
+                    onHoverStart={() => {
+                      speak(
+                        kana === "ー"
+                          ? "のばしぼう"
+                          : kana === "小"
+                          ? "こもじ"
+                          : kana,
+                        {
+                          rate: 2,
+                          pitch: 0.1,
+                        }
+                      );
+                    }}
+                  >
+                    {kana}
+                  </HoverClickButton>
+                )
               )
-            )
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </fieldset>
 
       {paused && (
@@ -217,7 +239,7 @@ export const TableKana = ({}: // onKanaChange,
       <dialog
         open
         id="settings"
-        className="z-20"
+        className="z-20 absolute inset-0"
         // className=" backdrop:bg-black backdrop:bg-opacity-50"
       >
         <div className="border p-8 grid gap-4 text-xl w-[80vw] max-w-xl">
@@ -238,6 +260,23 @@ export const TableKana = ({}: // onKanaChange,
               />
             </label>
             <output>{attentionDuration}ミリ秒</output>
+          </div>
+          <div>
+            <label>
+              文字の大きさ
+              <input
+                type="range"
+                className="w-full"
+                value={letterSize}
+                onChange={(e) => {
+                  setLetterSize(Number(e.target.value));
+                }}
+                min={0}
+                max={100}
+                step={5}
+              />
+            </label>
+            <output>{letterSize}</output>
           </div>
           <label>
             <input
