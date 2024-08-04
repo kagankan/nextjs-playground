@@ -3,7 +3,7 @@ import { Kana } from "../_components/Kana";
 import { FlickKana } from "../_components/FlickKana";
 
 export const metadata: Metadata = {
-  title: "コミュニケーションボード",
+  title: "コミュニケーションボード（フリックレイアウト）",
 };
 
 export default function Page() {
