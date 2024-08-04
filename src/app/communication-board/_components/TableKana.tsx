@@ -163,6 +163,9 @@ export const TableKana = ({}: // onKanaChange,
                   setIsSelectingPhrases(false);
                   handleTimer();
                 }}
+                onHoverStart={() => {
+                  speak(phrase, { rate: 2, pitch: 0.1 });
+                }}
               >
                 {phrase}
               </HoverClickButton>
